@@ -15,6 +15,10 @@ class Camera(object):
         self.UVN_matrice = np.array([self.U, self.V, self.N])
 
 
+    '''retorna o ponto p no sistema de coordenadas da camera (SCC)'''
+    def getSCC(self, p):
+        p = np.array(p)
+        return np.dot(self.UVN_matrice, p)
 
 
 
