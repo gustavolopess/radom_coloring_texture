@@ -13,12 +13,28 @@ class Camera(object):
         self.V = np.cross(self.N, self.U)
 
         self.UVN_matrice = np.array([self.U, self.V, self.N])
+        print self.UVN_matrice
 
 
     '''retorna o ponto p no sistema de coordenadas da camera (SCC)'''
     def toSCC(self, p):
         p = np.array(p)
         return np.dot(self.UVN_matrice, p)
+
+
+    '''converte um ponto (x,y,z) num ponto (x,y) equivalente à projeção ortográfica do ponto no plano'''
+    @staticmethod
+    def toOrthoProj(p):
+        p = np.array(p)
+        homog = np.array([1])
+        p = np.concatenate([p, homog])
+
+        transf_matrice = np.array([[1, 0, 0],
+                                   [0, 1, 0],
+                                   [0, 0, 0],
+                                   [0, 0, 1]])
+
+        return np.dot(transf_matrice, p)
 
 
 
