@@ -7,7 +7,7 @@ settings = Settings()
 class Scene(object):
     """docstring for Scene"""
 
-    def __init__(self):
+    def __init__(self, calice_input, ilumination_input):
         super(Scene, self).__init__()
         self.points = []
         self.triangles = []
@@ -25,10 +25,12 @@ class Scene(object):
         self.ks = 0.0
         self.il = 0.0
 
-    def load_illumination_points_triangles_color(self):
-        '''Carrega os pontos e os vertices dos triangulos'''
+        self.load_vertices(calice_input)
+        self.load_ilumination(ilumination_input)
 
-        with open(settings.calice_input) as calice_config:
+
+    def load_vertices(self, calice_input):
+        with open(calice_input) as calice_config:
             lines = calice_config.readlines()
 
         number_points = int(lines[0].split(" ")[0])
@@ -50,8 +52,10 @@ class Scene(object):
                 int(lines[x].splitlines()[0].split(" ")[2])
             ]))
 
+
+    def load_ilumination(self, ilumination_input):
         '''Carrega os dados de illuminação'''
-        with open(settings.iluminacao_input, 'r') as illumination:
+        with open(ilumination_input, 'r') as illumination:
             lines = illumination.readlines()
             self.n_factor = float(lines[-1])
             self.pl = np.array([float(lines[0].split(" ")[0]),
@@ -73,6 +77,7 @@ class Scene(object):
                                 float(lines[4].split(" ")[1]),
                                 float(lines[4].split(" ")[2])
                                 ])
+
 
     def illumination_values(self):
         '''função de depuração só pra checar se os valores recebidos estão corretos'''

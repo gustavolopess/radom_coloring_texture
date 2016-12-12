@@ -3,40 +3,10 @@ import numpy as np
 
 import operations.vector
 from config import Settings
-from scene import scene, camera
+from scene import scene
+from scene.camera import Camera
 
 settings = Settings()
-
-
-def create_camera_and_start_camera():
-    '''Carrega as da camera'''
-
-    with open(settings.camera_input, 'r') as camera_config:
-        configs = camera_config.readlines()
-
-    camera_position = np.array([float(configs[0].split(" ")[0]),
-                                float(configs[0].split(" ")[1]),
-                                float(configs[0].split(" ")[2])
-                                ])
-
-    camera_n = np.array([float(configs[1].split(" ")[0]),
-                         float(configs[1].split(" ")[1]),
-                         float(configs[1].split(" ")[2])
-                         ])
-
-    camera_v = np.array([float(configs[2].split(" ")[0]),
-                         float(configs[2].split(" ")[1]),
-                         float(configs[2].split(" ")[2])
-                         ])
-
-    camera_d = float(configs[3].split(" ")[0])
-    camera_hx = float(configs[3].split(" ")[1])
-    camera_hy = float(configs[3].split(" ")[2])
-
-    cam = camera.Camera(camera_position, camera_n, camera_v,
-                        camera_d, camera_hx, camera_hy, 800, 600)
-
-    return cam
 
 if __name__ == '__main__':
 
@@ -67,8 +37,7 @@ if __name__ == '__main__':
     # print "Aleatorização definida para: ", red, green, blue
 
     '''Carrega as entradas e pinta os valores carregados'''
-    sc = scene.Scene()
-    sc.load_illumination_points_triangles_color()
+    sc = scene.Scene(settings.calice_input, settings.iluminacao_input)
 
     if settings.debug:
         print "#" * 50
@@ -78,7 +47,7 @@ if __name__ == '__main__':
     print("(1) - Points and Triangles fully loaded.")
 
     # Load Camera Atributes
-    cam = create_camera_and_start_camera()
+    cam = Camera(settings.camera_input)
     print("(2) - Camera fully loaded")
 
     # Calculate new points for inputs and pl
