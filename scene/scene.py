@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import numpy as np
+from config import Settings
 
+settings = Settings()
 
 class Scene(object):
     """docstring for Scene"""
@@ -26,7 +28,7 @@ class Scene(object):
     def load_illumination_points_triangles_color(self):
         '''Carrega os pontos e os vertices dos triangulos'''
 
-        with open("input/calice.txt") as calice_config:
+        with open(settings.calice_input) as calice_config:
             lines = calice_config.readlines()
 
         number_points = int(lines[0].split(" ")[0])
@@ -49,7 +51,7 @@ class Scene(object):
             ]))
 
         '''Carrega os dados de illuminação'''
-        with open("input/iluminacao.txt", 'r') as illumination:
+        with open(settings.iluminacao_input, 'r') as illumination:
             lines = illumination.readlines()
             self.n_factor = float(lines[-1])
             self.pl = np.array([float(lines[0].split(" ")[0]),

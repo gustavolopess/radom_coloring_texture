@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-import Scene
-import camera
-import vector
-from settings import debug
+
+import operations.vector
+from config import Settings
+from scene import scene, camera
+
+settings = Settings()
 
 
 def create_camera_and_start_camera():
     '''Carrega as da camera'''
 
-    with open("input/camera.txt", 'r') as camera_config:
+    with open(settings.camera_input, 'r') as camera_config:
         configs = camera_config.readlines()
 
     camera_position = np.array([float(configs[0].split(" ")[0]),
@@ -65,10 +67,10 @@ if __name__ == '__main__':
     # print "Aleatorização definida para: ", red, green, blue
 
     '''Carrega as entradas e pinta os valores carregados'''
-    sc = Scene.Scene()
+    sc = scene.Scene()
     sc.load_illumination_points_triangles_color()
 
-    if debug:
+    if settings.debug:
         print "#" * 50
         print "LUMINOSITY INPUTS"
         sc.illumination_values()
@@ -100,7 +102,7 @@ if __name__ == '__main__':
         normal = cam.get_triangle_normal(
             sc.points[p1], sc.points[p2], sc.points[p3])
 
-        normalized_normal = vector.normalize(normal)
+        normalized_normal = operations.vector.normalize(normal)
         sc.triangles_normal.append(normalized_normal)
 
         sc.points_normal[p1] += normalized_normal
@@ -110,7 +112,7 @@ if __name__ == '__main__':
     normalyzed_points_normal = []
 
     for n in sc.points_normal:
-        normalyzed_points_normal.append(vector.normalize(n))
+        normalyzed_points_normal.append(operations.vector.normalize(n))
 
     sc.points_normal = normalyzed_points_normal
     print("(4) - Calculated points normals and triangles normals already normalyzed")

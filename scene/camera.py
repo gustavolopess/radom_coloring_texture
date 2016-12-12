@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-import vector
-from settings import debug
+
+import operations.vector
+from config.settings import debug
 
 
 class Camera(object):
@@ -16,9 +17,9 @@ class Camera(object):
         self.width = width
         self.height = height
 
-        self.N = vector.normalize(camera_n)
-        self.V = vector.normalize(
-            camera_v - vector.grand_schimidt(camera_v, self.N))
+        self.N = operations.vector.normalize(camera_n)
+        self.V = operations.vector.normalize(
+            camera_v - operations.vector.grand_schimidt(camera_v, self.N))
         self.U = np.cross(self.N, self.V)
         self.UVN_matrice = np.array([self.U, self.V, self.N])
 
