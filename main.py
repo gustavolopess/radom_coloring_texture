@@ -5,8 +5,11 @@ import operations.vector
 from config import Settings
 from scene import scene
 from scene.camera import Camera
+import logging
 
 settings = Settings()
+logging.basicConfig(level=logging.INFO, format='%(message)s')
+info = logging.info
 
 if __name__ == '__main__':
 
@@ -35,63 +38,52 @@ if __name__ == '__main__':
     #     blue = True
 
     # print "Aleatorização definida para: ", red, green, blue
+    '''passos:'''
+    info("1) camera")
+    info("\t1.1) normalizar N")
+    info("\t1.2) V = V - proj N (V)")
+    info("\t1.3) U = N x V")
+    info("\t1.4) alfa = UNV = {U, N, V}")
+    cam = Camera(settings.camera_input)
 
-    '''Carrega as entradas e pinta os valores carregados'''
+
+    info("2) cena")
     sc = scene.Scene(settings.calice_input, settings.iluminacao_input)
 
-    if settings.debug:
-        print "#" * 50
-        print "LUMINOSITY INPUTS"
-        sc.illumination_values()
-        print "#" * 50
-    print("(1) - Points and Triangles fully loaded.")
+    info("\t2.1) passar a posição da fonte de luz de coordenadas de mundo para coordenadas de vista")
+    pl_view = cam.to_view_coordinate_system(sc.pl)
 
-    # Load Camera Atributes
-    cam = Camera(settings.camera_input)
-    print("(2) - Camera fully loaded")
-
-    # Calculate new points for inputs and pl
-    new_pl_view_coordinate = cam.to_view_coordinate_system(sc.pl)
-    new_view_coordinates = []
-
+    info("\t2.2) para cada ponto do objeto, projete-o para coordenadas de vista")
+    points_view = []
     for p in sc.points:
-        new_view_coordinates.append(cam.to_view_coordinate_system(p))
+        points_view.append(cam.to_view_coordinate_system(p))
+    sc.view_coordinates = points_view
 
-    sc.view_coordinates = new_view_coordinates
-    print("(3) - Converted points to view coordinate system")
 
-    p1 = sc.triangles[0][0]
-    p2 = sc.triangles[0][1]
-    p3 = sc.triangles[0][2]
-
+    info("\t2.3) inicializar as normais de todos os pontos do objeto com zero")
+    info("\t2.4) para cada triângulo calcular a normal do triângulo e normalizá-la. somar ela à normal\
+    de cada um dos 3 pontos (vértices do triângulo)")
     for t in sc.triangles:
-        p1 = t[0] - 1
-        p2 = t[1] - 1
-        p3 = t[2] - 1
-        normal = cam.get_triangle_normal(
-            sc.points[p1], sc.points[p2], sc.points[p3])
+        p1, p2, p3 = sc.points[t[0] - 1], sc.points[t[1] - 1], sc.points[t[2] - 1]
+        tr_normal = cam.get_triangle_normal(p1, p2, p3)
+        tr_normal = operations.vector.normalize(tr_normal)
+        sc.points_normal[t[0] - 1] += tr_normal
+        sc.points_normal[t[1] - 1] += tr_normal
+        sc.points_normal[t[1] - 1] += tr_normal
 
-        normalized_normal = operations.vector.normalize(normal)
-        sc.triangles_normal.append(normalized_normal)
 
-        sc.points_normal[p1] += normalized_normal
-        sc.points_normal[p2] += normalized_normal
-        sc.points_normal[p3] += normalized_normal
+    info("\t2.5) normalizar todas as normais")
+    normalized_points_normal = []
+    for pn in sc.points_normal:
+        normalized_points_normal.append(operations.vector.normalize(pn))
+    sc.points_normal = normalized_points_normal
 
-    normalyzed_points_normal = []
 
-    for n in sc.points_normal:
-        normalyzed_points_normal.append(operations.vector.normalize(n))
-
-    sc.points_normal = normalyzed_points_normal
-    print("(4) - Calculated points normals and triangles normals already normalyzed")
-
-    screen_coord_list = []
+    info("\t2.6) para cada ponto do obj, projete-o para coord de tela 2D, sem descartar os pontos em coord 3D")
+    view_2d = []
     for vp in sc.view_coordinates:
-        screen_coord_list.append(cam.to_screen_coordinate_system(vp))
-
-    sc.screen_coordinates = screen_coord_list
-    print("(5) - Calculated screen coordinates for object")
+        view_2d.append(cam.to_screen_coordinate_system(vp))
+    sc.screen_coordinates = view_2d
 
     # print sc.points_normal[0]
     # print len(sc.points_normal)

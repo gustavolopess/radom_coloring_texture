@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from config import Settings
+from operations import vector
 
 settings = Settings()
 
@@ -27,7 +28,6 @@ class Scene(object):
 
         self.load_vertices(calice_input)
         self.load_ilumination(ilumination_input)
-
 
     def load_vertices(self, calice_input):
         with open(calice_input) as calice_config:
@@ -79,9 +79,20 @@ class Scene(object):
                                 ])
 
 
+    '''a iluminação de phong é caracterizada pela junção dos vetores de iluminação
+    de ambiente, difusa e especular'''
+    def pixel_phong_ilumination(self, focused_px, N, V):
+        lightDir = self.pl - focused_px
+        lightDir = -vector.normalize(lightDir)
+        normal = vector.normalize(N)
+        viewDir = vector.normalize(V)
+
+
+
+
+
     def illumination_values(self):
         '''função de depuração só pra checar se os valores recebidos estão corretos'''
-
         print self.pl
         print self.ka
         print self.ia
