@@ -1,17 +1,18 @@
 from OpenGL.GLUT import *
 from OpenGL.GL import *
+from background import run
 width, height = 800, 600
 
-points = []
+sc = run()
+points = sc.screen_coordinates
 
 def render():
     glClear(GL_COLOR_BUFFER_BIT)
 
-    glPointSize(13.0)
+    glPointSize(2.0)
     glBegin(GL_POINTS)
 
     glColor3f(0.0, 1.0, 1.0)
-    print points
     for p in points:
         glVertex2f(p[0], p[1])
 
@@ -20,23 +21,7 @@ def render():
     glutSwapBuffers()
 
 
-def mouse_handle(button, state, x, y):
-    global points
-    if state == GLUT_DOWN:
-        if button == GLUT_LEFT_BUTTON:
-            points.append((float(x), float(height - y)))
-
-        elif button == GLUT_RIGHT_BUTTON:
-            try:
-                points.pop()
-            except:
-                pass
-
-        glutPostRedisplay()
-
-
 def init():
-    # glClearColor(1.0, 1.0, 1.0, 1.0)
     glClear(GL_COLOR_BUFFER_BIT)
 
     glViewport(0, 0, width, height)
@@ -51,9 +36,8 @@ if __name__ == '__main__':
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA)
     glutInitWindowSize(width, height)
     glutInitWindowPosition(100, 100)
-    glutCreateWindow('Testing')
+    glutCreateWindow('Projeto - PG 2')
     glutDisplayFunc(render)
-    glutMouseFunc(mouse_handle)
     glClearColor(0.0, 0.0, 0.0, 0.0)
     init()
     glutMainLoop()

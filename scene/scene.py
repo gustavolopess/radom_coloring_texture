@@ -88,9 +88,6 @@ class Scene(object):
         viewDir = vector.normalize(V)
 
 
-
-
-
     def illumination_values(self):
         '''função de depuração só pra checar se os valores recebidos estão corretos'''
         print self.pl
