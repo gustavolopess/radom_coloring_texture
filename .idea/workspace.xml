@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="87dfbd6c-8ae7-44d1-b0ea-7401bf9df4cf" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/scene/scene.py" afterPath="$PROJECT_DIR$/scene/scene.py" />
     </list>
     <ignored path="random_coloring_texture.iws" />
@@ -83,8 +84,8 @@
       <file leaf-file-name="scene.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/scene/scene.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="305">
-              <caret line="137" column="89" selection-start-line="137" selection-start-column="89" selection-end-line="137" selection-end-column="89" />
+            <state relative-caret-position="89">
+              <caret line="80" column="0" selection-start-line="80" selection-start-column="0" selection-end-line="80" selection-end-column="0" />
               <folding>
                 <element signature="e#24#42#0" expanded="true" />
               </folding>
@@ -793,8 +794,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/scene/scene.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="305">
-          <caret line="137" column="89" selection-start-line="137" selection-start-column="89" selection-end-line="137" selection-end-column="89" />
+        <state relative-caret-position="89">
+          <caret line="80" column="0" selection-start-line="80" selection-start-column="0" selection-end-line="80" selection-end-column="0" />
           <folding>
             <element signature="e#24#42#0" expanded="true" />
           </folding>
