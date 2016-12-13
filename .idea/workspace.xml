@@ -83,8 +83,8 @@
       <file leaf-file-name="scene.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/scene/scene.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="107">
-              <caret line="132" column="38" selection-start-line="132" selection-start-column="38" selection-end-line="132" selection-end-column="38" />
+            <state relative-caret-position="305">
+              <caret line="137" column="89" selection-start-line="137" selection-start-column="89" selection-end-line="137" selection-end-column="89" />
               <folding>
                 <element signature="e#24#42#0" expanded="true" />
               </folding>
@@ -793,8 +793,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/scene/scene.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="107">
-          <caret line="132" column="38" selection-start-line="132" selection-start-column="38" selection-end-line="132" selection-end-column="38" />
+        <state relative-caret-position="305">
+          <caret line="137" column="89" selection-start-line="137" selection-start-column="89" selection-end-line="137" selection-end-column="89" />
           <folding>
             <element signature="e#24#42#0" expanded="true" />
           </folding>
