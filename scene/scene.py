@@ -135,7 +135,7 @@ class Scene(object):
 
         color = self.od*ambient_component + self.od*(self.il*(diffuse_component + specular_component))
 
-        final_color = np.array([color[0]%255, color[1]%255, color[2]%255])
+        final_color = np.array(int([color[0]%255), int(color[1]%255), int(color[2]%255]))
         return final_color
 
 
