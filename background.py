@@ -7,12 +7,12 @@ from scene import scene
 from scene.camera import Camera
 import logging
 
-settings = Settings()
-logging.basicConfig(level=logging.INFO, format='%(message)s')
-info = logging.info
-
-if __name__ == '__main__':
-
+# if __name__ == '__main__':
+def run():
+    
+    settings = Settings()
+    logging.basicConfig(level=logging.INFO, format='%(message)s')
+    info = logging.info
     '''Recebe o fator de aleatorização da textura aleatoria do usuario bem como os canais'''
     # fator_aleatorizacao = -1
 
@@ -52,13 +52,13 @@ if __name__ == '__main__':
 
     info("\t2.1) passar a posição da fonte de luz de coordenadas de mundo para coordenadas de vista")
     pl_view = cam.to_view_coordinate_system(sc.pl)
+    sc.pl = pl_view
 
     info("\t2.2) para cada ponto do objeto, projete-o para coordenadas de vista")
     points_view = []
     for p in sc.points:
         points_view.append(cam.to_view_coordinate_system(p))
     sc.view_coordinates = points_view
-
 
     info("\t2.3) inicializar as normais de todos os pontos do objeto com zero")
     info("\t2.4) para cada triângulo calcular a normal do triângulo e normalizá-la. somar ela à normal\
@@ -89,3 +89,5 @@ if __name__ == '__main__':
     # print len(sc.points_normal)
     # print sc.triangles_normal
     # print len(sc.triangles_normal)
+
+    return sc
