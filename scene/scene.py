@@ -81,11 +81,29 @@ class Scene(object):
 
     '''a iluminação de phong é caracterizada pela junção dos vetores de iluminação
     de ambiente, difusa e especular'''
-    def pixel_phong_ilumination(self, focused_px, N, V):
+    '''
+        | ; Pl - Posicao da luz em coordenadas de mundo
+        | ; ka - reflexao ambiental
+        | ; Ia - vetor cor ambiental
+        | ; kd - constante difusa
+        | ; Od - vetor difuso
+        | ; ks - parte especular
+        | ; Il - cor da fonte de luz
+        | ; n  - constante de rugosidade
+    '''
+    def pixel_phong_ilumination(self, focused_px, N, V,  specularPower):
         lightDir = self.pl - focused_px
         lightDir = -vector.normalize(lightDir)
         normal = vector.normalize(N)
         viewDir = vector.normalize(V)
+
+
+        saturate = lambda x: max(0, min(1, x))
+        diff = saturate(np.dot(normal, lightDir))
+        reflect = vector.normalize(2 * diff * normal - lightDir)
+        specular = pow(saturate(np.dot(reflect, viewDir)), specularPower)
+
+        return self.ia*self.ka + self.il*self.kd*self.od + self.
 
 
 
