@@ -3,3 +3,5 @@
 *.zip
 Projeto/*
 .idea/*
+*.txt
+*.xml

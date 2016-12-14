@@ -3,19 +3,16 @@ from OpenGL.GL import *
 from background import run
 width, height = 800, 600
 
-sc = run()
-points = sc.screen_coordinates
+# points = sc.screen_coordinates
 
 def render():
     glClear(GL_COLOR_BUFFER_BIT)
-
     glPointSize(2.0)
     glBegin(GL_POINTS)
-
     glColor3f(0.0, 1.0, 1.0)
-    for p in points:
-        glVertex2f(p[0], p[1])
-
+    
+    sc = run(width, height)
+    
     glEnd()
     glFlush()
     glutSwapBuffers()
@@ -26,7 +23,7 @@ def init():
 
     glViewport(0, 0, width, height)
     glMatrixMode(GL_PROJECTION)
-    glOrtho(0.0, float(width), 0.0, float(height), 1.0, -1.0)
+    glOrtho(0.0, width, height, 0.0, -5.0, 5.0)
 
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()

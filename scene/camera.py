@@ -50,19 +50,27 @@ class Camera(object):
 
     '''retorna o ponto p no sistema de coordenadas da camera (camera_coordinate_system)'''
     def to_view_coordinate_system(self, p):
-        point = p - self.camera_position
-        return np.dot(self.UVN_matrice, point)
+        point = np.array([0.0,0.0,0.0])
+        point[0] = p[0] - self.camera_position[0]
+        point[1] = p[1] - self.camera_position[1]
+        point[2] = p[2] - self.camera_position[2]
+
+        result = np.array([self.UVN_matrice[0][0] * point[0] + self.UVN_matrice[0][1] * point[1] + self.UVN_matrice[0][2] * point[2],
+                            self.UVN_matrice[1][0] * point[0] + self.UVN_matrice[1][1] * point[1] + self.UVN_matrice[1][2] * point[2],
+                            self.UVN_matrice[2][0] * point[0] + self.UVN_matrice[2][1] * point[1] + self.UVN_matrice[2][2] * point[2]])
+
+        return result
 
     def to_screen_coordinate_system(self, p):
         '''calculate projection coordinates'''
         x = (self.d / self.hx) * (p[0] / p[2])
         y = (self.d / self.hy) * (p[1] / p[2])
-
         '''convert to screen'''
         screen_coord = np.array(
-            [(int)(((x + 1) / 2) * self.width),
-             (int)(((1 - y) / 2) * self.height)]
+            [(int)(((x + 1)  * (self.width/ 2))),
+             (int)(((1 - y) * (self.height/ 2)))]
         )
+
         return screen_coord
 
     def get_triangle_normal(self, p1, p2, p3):
