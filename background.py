@@ -56,12 +56,7 @@ def run(width, height):
 
     info("\t2.1) passar a posição da fonte de luz de coordenadas de mundo para coordenadas de vista")
     pl_view = cam.to_view_coordinate_system(sc.pl)
-    
-    if settings.debug:
-        print "#" * 50
-        print "\nLight Position: ", pl_view, "\n"
-        print "#" * 50
-        
+    sc.pl = pl_view
 
     info("\t2.2) para cada ponto do objeto, projete-o para coordenadas de vista")
     points_view = []
