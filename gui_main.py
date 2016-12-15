@@ -35,6 +35,6 @@ if __name__ == '__main__':
     glutInitWindowPosition(100, 100)
     glutCreateWindow('Projeto - PG 2')
     glutDisplayFunc(render)
-    glClearColor(0.0, 0.0, 0.0, 0.0)
+    glClearColor(1.0, 1.0, 1.0, 1.0)
     init()
     glutMainLoop()
