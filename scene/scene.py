@@ -10,6 +10,8 @@ from operations.rgb import RGB
 from OpenGL.GLUT import *
 from OpenGL.GL import *
 
+import sys
+
 settings = Settings()
 
 class Scene(object):
@@ -48,7 +50,7 @@ class Scene(object):
         self.load_ilumination(ilumination_input)
 
     def init_zbuffer(self, height, width):
-        self.z_buffer = np.array([[99999999]*height for i in range(0, width)])
+        self.z_buffer = np.array([[sys.maxint]*height for i in range(0, width)])
 
     def load_vertices(self, calice_input):
         with open(calice_input) as calice_config:
@@ -89,34 +91,18 @@ class Scene(object):
                                 float(lines[2].split(" ")[1]),
                                 float(lines[2].split(" ")[2])
                                 ])
-
-            # self.ia = RGB(float(lines[2].split(" ")[0]),
-            #         float(lines[2].split(" ")[1]),
-            #         float(lines[2].split(" ")[2])
-            #         )
             self.kd = float(lines[3])
 
             self.od = np.array([float(lines[4].split(" ")[0]),
                                 float(lines[4].split(" ")[1]),
                                 float(lines[4].split(" ")[2])
                                 ])
-
-            # self.od = RGB(float(lines[4].split(" ")[0]),
-            #         float(lines[4].split(" ")[1]),
-            #         float(lines[4].split(" ")[2])
-            #         )
             self.ks = float(lines[5])
 
             self.il = np.array([float(lines[6].split(" ")[0]),
                                 float(lines[6].split(" ")[1]),
                                 float(lines[6].split(" ")[2])
                                 ])
-
-            # self.il = RGB(float(lines[6].split(" ")[0]),
-            #                     float(lines[6].split(" ")[1]),
-            #                     float(lines[6].split(" ")[2])
-            #                     )
-
     '''a iluminação de phong é caracterizada pela junção dos vetores de iluminação
         de ambiente, difusa e especular'''
     '''
@@ -134,13 +120,10 @@ class Scene(object):
     '''
 
     def pixel_phong_ilumination(self, ponto, N):
-
         ia = self.ia*self.ka
         l = (self.pl - ponto)
         l = vector.normalize(l)
         N = vector.normalize(N)
-        # id = RGB(0,0,0)
-        # ie = RGB(0,0,0)
 
         id = np.array([0,0,0])
         ie = np.array([0,0,0])
@@ -151,33 +134,15 @@ class Scene(object):
             
         if (np.dot(N, l) >= 0):
             id = (self.od * self.il) * self.kd * (np.dot(N,l))
-            
 
             r = vector.normalize((N * 2)*(np.dot(N,l)) - l)
             if (np.dot(v,r) >= 0):
                 ie = (self.il) * self.ks * (pow(np.dot(r, v), self.n_factor))
 
         color = ia + id + ie
-        # print color
+        color = color/255.0
+
         return color
-
-        #         saturate = lambda x: max(0, min(1, x))
-
-        # L = -vector.normalize(self.pl - focused_px)
-        # N = vector.normalize(N)
-        # NL = saturate(np.dot(N, L))
-        # R = vector.normalize(2 * NL * N - L)
-        # RV = saturate(np.dot(R, V))
-
-        # ambient_component = self.ka * self.ia
-        # diffuse_component = self.kd*NL
-        # specular_component = self.ks*pow(RV, self.n_factor)
-
-        # color = self.od*ambient_component + self.od*(self.il*(diffuse_component + specular_component))
-
-        # final_color = np.array([ int(color[0]%255), int(color[1]%255), int(color[2]%255) ])
-        # return final_color
-
 
 
     def illumination_values(self):
@@ -282,16 +247,14 @@ class Scene(object):
 
         while(x1 <= x2):
             a, b = self.get_ab(self.screen_coordinates[p1], self.screen_coordinates[p2], np.array([x1, sline]))
-            ponto = self.view_coordinates[p1]*a + self.view_coordinates[p2] * b
+            ponto = self.view_coordinates[p1] * a + self.view_coordinates[p2] * b
             
             if (self.z_buffer[int(x1 + 0.5)][int(sline + 0.5)] > ponto[2]):
                 self.z_buffer[int(x1 + 0.5)][int(sline + 0.5)] = ponto[2]
                 normal = self.points_normal[p1] * a + self.points_normal[p2] * b
-
                 color = self.pixel_phong_ilumination(ponto, normal)
-                color = color/255.0
+
                 glColor3f(color[0],color[1],color[2])
-                # glColor3f(color.r,color.g,color.b)
                 glVertex2f(x1, sline)
             x1 += 1
 
@@ -324,19 +287,9 @@ class Scene(object):
                 if (self.z_buffer[int(x_auxiliar + 0.5)][int(scanlineY_v1 + 0.5)] > ponto[2]):
                     self.z_buffer[int(x_auxiliar + 0.5)][int(scanlineY_v1 + 0.5)] = ponto[2]
                     normal = self.points_normal[triang_bottom.v1_ref] * a + self.points_normal[triang_bottom.v2_ref] * b + self.points_normal[triang_bottom.v3_ref] * c
-                    
-                    # if self.debug:
-                    #     print "Hello - Bottom"
-                    #     self.debug = False
-                    #     print a, b, c
-                    #     print normal
-                    #     print self.points_normal[triang_bottom.v1_ref]
-
-
                     color = self.pixel_phong_ilumination(ponto, normal)
-                    color = color/255.0
+
                     glColor3f(color[0], color[1],color[2])
-                    # glColor3f(color.r, color.g,color.b)
                     glVertex2i(int(x_auxiliar + 0.5), int(scanlineY_v1 + 0.5))
                 x_auxiliar += 1
             scanlineY_v1 += 1
@@ -373,10 +326,8 @@ class Scene(object):
                     self.z_buffer[int(x_auxiliar + 0.5)][int(scanlineY_v1 + 0.5)] = ponto[2]
                     normal = self.points_normal[triang_top.v1_ref] * a + self.points_normal[triang_top.v2_ref] * b + self.points_normal[triang_top.v3_ref] * c
                     color = self.pixel_phong_ilumination(ponto, normal)
-                    color = color/255.0
-                    glColor3f(color[0], color[1], color[2])
-                    # glColor3f(color.r, color.g,color.b)
                     
+                    glColor3f(color[0], color[1], color[2])
                     glVertex2i(int(x_auxiliar + 0.5), int(scanlineY_v1 + 0.5))
                 x_auxiliar += 1
             scanlineY_v1 -= 1
