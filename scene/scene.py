@@ -85,37 +85,37 @@ class Scene(object):
                                 ])
             self.ka = float(lines[1])
 
-            # self.ia = np.array([float(lines[2].split(" ")[0]),
-            #                     float(lines[2].split(" ")[1]),
-            #                     float(lines[2].split(" ")[2])
-            #                     ])
+            self.ia = np.array([float(lines[2].split(" ")[0]),
+                                float(lines[2].split(" ")[1]),
+                                float(lines[2].split(" ")[2])
+                                ])
 
-            self.ia = RGB(float(lines[2].split(" ")[0]),
-                    float(lines[2].split(" ")[1]),
-                    float(lines[2].split(" ")[2])
-                    )
+            # self.ia = RGB(float(lines[2].split(" ")[0]),
+            #         float(lines[2].split(" ")[1]),
+            #         float(lines[2].split(" ")[2])
+            #         )
             self.kd = float(lines[3])
 
-            # self.od = np.array([float(lines[4].split(" ")[0]),
-            #                     float(lines[4].split(" ")[1]),
-            #                     float(lines[4].split(" ")[2])
-            #                     ])
+            self.od = np.array([float(lines[4].split(" ")[0]),
+                                float(lines[4].split(" ")[1]),
+                                float(lines[4].split(" ")[2])
+                                ])
 
-            self.od = RGB(float(lines[4].split(" ")[0]),
-                    float(lines[4].split(" ")[1]),
-                    float(lines[4].split(" ")[2])
-                    )
+            # self.od = RGB(float(lines[4].split(" ")[0]),
+            #         float(lines[4].split(" ")[1]),
+            #         float(lines[4].split(" ")[2])
+            #         )
             self.ks = float(lines[5])
 
-            # self.il = np.array([float(lines[6].split(" ")[0]),
-            #                     float(lines[6].split(" ")[1]),
-            #                     float(lines[6].split(" ")[2])
-            #                     ])
-
-            self.il = RGB(float(lines[6].split(" ")[0]),
+            self.il = np.array([float(lines[6].split(" ")[0]),
                                 float(lines[6].split(" ")[1]),
                                 float(lines[6].split(" ")[2])
-                                )
+                                ])
+
+            # self.il = RGB(float(lines[6].split(" ")[0]),
+            #                     float(lines[6].split(" ")[1]),
+            #                     float(lines[6].split(" ")[2])
+            #                     )
 
     '''a iluminação de phong é caracterizada pela junção dos vetores de iluminação
         de ambiente, difusa e especular'''
@@ -139,26 +139,26 @@ class Scene(object):
         l = (self.pl - ponto)
         l = vector.normalize(l)
         N = vector.normalize(N)
-        id = RGB(0,0,0)
-        ie = RGB(0,0,0)
+        # id = RGB(0,0,0)
+        # ie = RGB(0,0,0)
 
-        # id = np.array([0,0,0])
-        # ie = np.array([0,0,0])
+        id = np.array([0,0,0])
+        ie = np.array([0,0,0])
 
+        v = -vector.normalize(ponto)
+        if (np.dot(N,v) < 0):
+            N = -N
+            
         if (np.dot(N, l) >= 0):
-            id = (self.od%self.il) * self.kd * (np.dot(N,l))
-            v = vector.normalize(-ponto)
+            id = (self.od * self.il) * self.kd * (np.dot(N,l))
+            
 
-            if (np.dot(N,v) < 0):
-                N = -N
             r = vector.normalize((N * 2)*(np.dot(N,l)) - l)
             if (np.dot(v,r) >= 0):
                 ie = (self.il) * self.ks * (pow(np.dot(r, v), self.n_factor))
-        else:
-            print "Não entrei"
+
         color = ia + id + ie
         # print color
-        # final_color = np.array([int(color[0]%256), int(color[1]%256), int(color[2]%256) ])
         return color
 
         #         saturate = lambda x: max(0, min(1, x))
@@ -290,8 +290,8 @@ class Scene(object):
 
                 color = self.pixel_phong_ilumination(ponto, normal)
                 color = color/255.0
-                # glColor3f(color[0],color[1],color[2])
-                glColor3f(color.r,color.g,color.b)
+                glColor3f(color[0],color[1],color[2])
+                # glColor3f(color.r,color.g,color.b)
                 glVertex2f(x1, sline)
             x1 += 1
 
@@ -335,8 +335,8 @@ class Scene(object):
 
                     color = self.pixel_phong_ilumination(ponto, normal)
                     color = color/255.0
-                    # glColor3f(color[0], color[1],color[2])
-                    glColor3f(color.r, color.g,color.b)
+                    glColor3f(color[0], color[1],color[2])
+                    # glColor3f(color.r, color.g,color.b)
                     glVertex2i(int(x_auxiliar + 0.5), int(scanlineY_v1 + 0.5))
                 x_auxiliar += 1
             scanlineY_v1 += 1
@@ -374,8 +374,8 @@ class Scene(object):
                     normal = self.points_normal[triang_top.v1_ref] * a + self.points_normal[triang_top.v2_ref] * b + self.points_normal[triang_top.v3_ref] * c
                     color = self.pixel_phong_ilumination(ponto, normal)
                     color = color/255.0
-                    # glColor3f(color[0], color[1], color[2])
-                    glColor3f(color.r, color.g,color.b)
+                    glColor3f(color[0], color[1], color[2])
+                    # glColor3f(color.r, color.g,color.b)
                     
                     glVertex2i(int(x_auxiliar + 0.5), int(scanlineY_v1 + 0.5))
                 x_auxiliar += 1
