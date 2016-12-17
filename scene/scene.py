@@ -10,7 +10,9 @@ from operations.rgb import RGB
 from OpenGL.GLUT import *
 from OpenGL.GL import *
 
+
 import sys
+import random
 
 settings = Settings()
 
@@ -120,7 +122,7 @@ class Scene(object):
         final_color = ambient_component + diffuse_component + specular_component
     '''
 
-    def pixel_phong_ilumination(self, ponto, N):
+    def pixel_phong_ilumination(self, ponto, N, colors_to_randomize, random_factor):
         ia = self.ia*self.ka
         l = (self.pl - ponto)
         l = vector.normalize(l)
@@ -134,7 +136,15 @@ class Scene(object):
             N = -N
             
         if (np.dot(N, l) >= 0):
-            id = (self.od * self.il) * self.kd * (np.dot(N,l))
+            attenuation = random.uniform(1-random_factor, 1)
+
+            random_r = attenuation if colors_to_randomize['R'] is True else 1
+            random_g = attenuation if colors_to_randomize['G'] is True else 1
+            random_b = attenuation if colors_to_randomize['B'] is True else 1
+
+            od = np.array([self.od[0]*random_r, self.od[1]*random_g, self.od[2]*random_b])
+
+            id = (od * self.il) * self.kd * (np.dot(N,l))
 
             r = vector.normalize((N * 2)*(np.dot(N, l)) - l)
             if (np.dot(v,r) >= 0):
@@ -186,7 +196,7 @@ class Scene(object):
 
 
 
-    def rasterize_screen_triangles(self):
+    def rasterize_screen_triangles(self, colors_to_randomize, random_factor):
 
         def yscan(triangle):
 
@@ -256,7 +266,7 @@ class Scene(object):
                              beta * self.points_normal[t.ind2 - 1] +
                              gama * self.points_normal[t.ind3 - 1])
 
-                        color = self.pixel_phong_ilumination(_P, N)
+                        color = self.pixel_phong_ilumination(_P, N, colors_to_randomize, random_factor)
                         glColor3f(color[0], color[1], color[2])
                         glVertex2f(pixel[0], pixel[1])
 

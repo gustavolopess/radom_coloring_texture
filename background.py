@@ -83,7 +83,7 @@ def run(width, height, colors_to_randomize, random_factor):
     sc.create_triangle_screen_objects()
 
     info("\t2.7) Realiza a varredura nos triangulos em coordenada de tela.")
-    sc.rasterize_screen_triangles()
+    sc.rasterize_screen_triangles(colors_to_randomize, random_factor)
 
 
     # with open("value_screen.txt", 'w') as view_txt:
