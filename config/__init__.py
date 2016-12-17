@@ -6,7 +6,7 @@ class Settings:
         # camera input
         self.camera_input = 'input/camera.txt'
         # self.camera_input = 'input/vader_camera.txt'
-        self.calice_input = 'input/calice.txt'
+        self.object_input = 'input/calice.txt'
         # self.calice_input = 'input/vader_object.txt'
         self.iluminacao_input = 'input/iluminacao.txt'
 

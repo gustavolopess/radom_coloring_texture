@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from config import Settings
-from operations import vector, triangle
+from operations import vector
 from operations.escalonar import Escalona
 from operator import itemgetter
 from operations.triangle import Triangle, TriangleWithRef, PointP4
@@ -52,8 +52,6 @@ class Scene(object):
     def init_zbuffer(self, height, width):
         # self.z_buffer = np.array([[sys.maxint]*height for i in range(0, width)])
         self.z_buffer = np.full((height, width), sys.maxint, dtype=float)
-        for line in self.z_buffer:
-            print len(line)
 
     def load_vertices(self, calice_input):
         with open(calice_input) as calice_config:
@@ -128,11 +126,11 @@ class Scene(object):
         l = vector.normalize(l)
         N = vector.normalize(N)
 
-        id = np.array([0,0,0])
-        ie = np.array([0,0,0])
+        id = np.array([0.0, 0.0, 0.0])
+        ie = np.array([0.0, 0.0, 0.0])
 
         v = -vector.normalize(ponto)
-        if (np.dot(N,v) < 0):
+        if (np.dot(v,N) < 0):
             N = -N
             
         if (np.dot(N, l) >= 0):
@@ -182,36 +180,127 @@ class Scene(object):
             self.triangles_screen_objects.append(Triangle(p1, p2, p3, t[0], t[1], t[2]))
 
 
+
+
+
+
+
+
     def rasterize_screen_triangles(self):
+
+        def yscan(triangle):
+
+            def fill_bottom_flat_triangle(vertices):
+                if vertices[0][1] == vertices[1][1] and vertices[1][1] == vertices[2][1]:
+                    draw_line(triangle, triangle.min_x, triangle.max_x, vertices[0][1])
+                    return
+                invslope1 = float(vertices[1][0] - vertices[0][0]) / float(vertices[1][1] - vertices[0][1])
+                invslope2 = float(vertices[2][0] - vertices[0][0]) / float(vertices[2][1] - vertices[0][1])
+
+                curx1 = curx2 = float(v[0][0])
+
+                scanlineY = v[0][1]
+                while scanlineY <= v[1][1]:
+                    draw_line(triangle, curx1, curx2, scanlineY)
+                    curx1 += invslope1
+                    curx2 += invslope2
+                    scanlineY += 1
+
+            def fill_top_flat_triangle(vertices):
+                if vertices[0][1] == vertices[1][1] and vertices[1][1] == vertices[2][1]:
+                    draw_line(triangle, triangle.min_x, triangle.max_x, vertices[0][1])
+                    return
+                invslope1 = float(vertices[2][0] - vertices[0][0]) / float(vertices[2][1] - vertices[0][1])
+                invslope2 = float(vertices[2][0] - vertices[1][0]) / float(vertices[2][1] - vertices[1][1])
+
+                curx1 = curx2 = float(v[2][0])
+
+                scanlineY = v[2][1]
+                while scanlineY > v[0][1]:
+                    draw_line(triangle, curx1, curx2, scanlineY)
+                    curx1 -= invslope1
+                    curx2 -= invslope2
+                    scanlineY -= 1
+
+            v = sorted([triangle.v1, triangle.v2, triangle.v3], key=lambda vx: vx[1])
+            print v
+
+            if v[1][1] == v[2][1]:
+                fill_bottom_flat_triangle(v)
+            elif v[0][1] == v[1][1]:
+                fill_top_flat_triangle(v)
+            else:
+                v4 = np.array([
+                    int(v[0][0] + (float(v[1][1] - v[0][1]) / float(v[2][1] - v[0][1])) * (v[2][0] - v[0][0])),
+                    v[1][1]
+                ])
+
+                fill_bottom_flat_triangle([v[0], v[1], v4])
+                fill_top_flat_triangle([v[1], v4, v[2]])
+
+
+        def draw_line(triangle, x_min, x_max, y):
+            t = triangle
+            for x in range(int(x_min), int(x_max)):
+                pixel = np.array([x, y])
+                if triangle.point_in_triangle(pixel):
+                    alfa, beta, gama = t.baricentric_coordinates(pixel)
+
+                    _P = alfa * self.view_coordinates[t.ind1 - 1] + beta * self.view_coordinates[t.ind2 - 1] + gama * self.view_coordinates[t.ind3 - 1]
+
+                    '''consulta ao Z-buffer'''
+                    if _P[2] < self.z_buffer[pixel[0]][pixel[1]]:
+                        self.z_buffer[pixel[0]][pixel[1]] = _P[2]
+
+                        N = (alfa * self.points_normal[t.ind1 - 1] +
+                             beta * self.points_normal[t.ind2 - 1] +
+                             gama * self.points_normal[t.ind3 - 1])
+
+                        color = self.pixel_phong_ilumination(_P, N)
+                        glColor3f(color[0], color[1], color[2])
+                        glVertex2f(pixel[0], pixel[1])
+
+
         '''para cada triângulo'''
         for t in self.triangles_screen_objects:
             '''para cada pixel P interno do triângulo'''
-            for x in range(t.min_x[0], t.max_x[0]+1):
-                for y in range(t.min_y[1], t.max_y[1]+1):
-                    pixel = np.array([x, y])
-                    if triangle.point_in_triangle(pixel, t):
-                        '''calcular coord baricentricas'''
-                        alfa, beta, gama = triangle.baricentric_coordinates(pixel, t)
+            # yscan(t)
+            for y in range(t.min_y, t.max_y+1):
+                draw_line(t, t.min_x, t.max_x, y)
+            # for x in range(t.min_x, t.max_x+1):
+            #     for y in range(t.min_y, t.max_y+1):
+            #         pixel = np.array([x, y])
+            #         if t.point_in_triangle(pixel):
+            #             '''calcular coord baricentricas'''
+            #             alfa, beta, gama = t.baricentric_coordinates(pixel)
+            #
+            #             _P = alfa*self.view_coordinates[t.ind1 - 1] + beta*self.view_coordinates[t.ind2 - 1] + gama*self.view_coordinates[t.ind3 - 1]
+            #
+            #             '''consulta ao Z-buffer'''
+            #             if _P[2] < self.z_buffer[pixel[0]][pixel[1]]:
+            #                 self.z_buffer[pixel[0]][pixel[1]] = _P[2]
+            #
+            #                 N = ( alfa*self.points_normal[t.ind1-1] +
+            #                       beta*self.points_normal[t.ind2-1] +
+            #                       gama*self.points_normal[t.ind3-1] )
+            #
+            #
+            #                 color = self.pixel_phong_ilumination(_P, N)
+            #                 glColor3f(color[0], color[1], color[2])
+            #                 glVertex2f(pixel[0], pixel[1])
 
-                        _P = alfa*self.points[t.ind1 - 1] + beta*self.points[t.ind2 - 1] + gama*self.points[t.ind3 - 1]
-
-                        '''consulta ao Z-buffer'''
-                        if _P[2] < self.z_buffer[pixel[0]][pixel[1]]:
-                            self.z_buffer[pixel[0]][pixel[1]] = _P[2]
-
-                            N = ( alfa*self.points_normal[t.ind1-1] +
-                                  beta*self.points_normal[t.ind2-1] +
-                                  gama*self.points_normal[t.ind3-1] )
-
-                            color = self.pixel_phong_ilumination(_P, N)
-                            glColor3f(color[0], color[1], color[2])
-                            glVertex2f(pixel[0], pixel[1])
 
 
 
 
 
-    # def call_triangle_rasterization(self):
+
+
+
+
+
+
+                        # def call_triangle_rasterization(self):
     #     for t in self.triangles:
     #         self.draw_triangle_rasterization(t[0] - 1, t[1] - 1, t[2] - 1)
     #

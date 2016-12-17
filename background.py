@@ -12,36 +12,14 @@ from OpenGL.GLUT import *
 from OpenGL.GL import *
 
 # if __name__ == '__main__':
-def run(width, height):
+def run(width, height, colors_to_randomize, random_factor):
     
     settings = Settings()
     logging.basicConfig(level=logging.INFO, format='%(message)s')
     info = logging.info
     '''Recebe o fator de aleatorização da textura aleatoria do usuario bem como os canais'''
-    # fator_aleatorizacao = -1
+    info('%s %f' % (colors_to_randomize, random_factor))
 
-    # while fator_aleatorizacao < 0.0 or fator_aleatorizacao > 1.0:
-    #     fator_aleatorizacao = float(raw_input(
-    #         "Insira o fator de aleatorização, entre 0 e 1:\n"))
-
-    # canais = raw_input(
-    #     "Insira os canais que deseja aleatorizar separados por espaço ex:R G B ou R B\n")
-
-    # red = False
-    # green = False
-    # blue = False
-
-    # # Definindo os canais de aleatorização
-    # if "R" in canais:
-    #     red = True
-
-    # if "G" in canais:
-    #     green = True
-
-    # if "B" in canais:
-    #     blue = True
-
-    # print "Aleatorização definida para: ", red, green, blue
     '''passos:'''
     info("1) camera")
     info("\t1.1) normalizar N")
@@ -52,7 +30,7 @@ def run(width, height):
 
 
     info("2) cena")
-    sc = scene.Scene(settings.calice_input, settings.iluminacao_input)
+    sc = scene.Scene(settings.object_input, settings.iluminacao_input)
 
     info("\t2.1) passar a posição da fonte de luz de coordenadas de mundo para coordenadas de vista")
     pl_view = cam.to_view_coordinate_system(sc.pl)
@@ -78,7 +56,7 @@ def run(width, height):
 
         tr_normal = cam.get_triangle_normal(p1, p2, p3)
         tr_normal = operations.vector.normalize(tr_normal)
-        
+
         sc.triangles_view_objects.append(Triangle(p1, p2, p3, norm=tr_normal))
         
         sc.points_normal[t[0] - 1] += tr_normal

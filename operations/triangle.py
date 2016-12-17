@@ -1,41 +1,6 @@
 import numpy as np
 
-
-def point_in_triangle(point, triangle):
-    sign = lambda p1, p2, p3: (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1])
-
-    b1 = sign(point, triangle.v1, triangle.v2) < 0.0
-    b2 = sign(point, triangle.v2, triangle.v3) < 0.0
-    b3 = sign(point, triangle.v3, triangle.v1) < 0.0
-
-    return (b1 == b2) and (b2 == b3)
-
-
-def baricentric_coordinates(point, triangle):
-    v0 = triangle.v2 - triangle.v1
-    v1 = triangle.v3 - triangle.v1
-    v2 = point - triangle.v1
-
-
-    d00 = np.dot(v0, v0)
-    d01 = np.dot(v0, v1)
-    d11 = np.dot(v1, v1)
-    d20 = np.dot(v2, v0)
-    d21 = np.dot(v2, v1)
-
-    denom = float(d00 * d11 - d01 * d01)
-
-    alfa = (d11 * d20 - d01 * d21) / denom
-    beta = (d00 * d21 - d01 * d20) / denom
-    gama = max(0, 1.0 - alfa - beta)
-
-    return alfa, beta, gama
-
-
-
 class Triangle(object):
-    """docstring for Triangle"""
-    
     def __init__(self, v1, v2, v3, ind1=None, ind2=None, ind3=None, norm=None):
         super(Triangle, self).__init__()
         self.v1 = v1
@@ -48,10 +13,48 @@ class Triangle(object):
 
         self.norm = norm
 
-        sorted_by_x = sorted([self.v1, self.v2, self.v3], key=lambda v: v[0])
-        sorted_by_y = sorted([self.v1, self.v2, self.v3], key=lambda v: v[1])
-        self.min_x, self.max_x = sorted_by_x[0], sorted_by_x[-1]
-        self.min_y, self.max_y = sorted_by_y[0], sorted_by_y[-1]
+
+        self.min_x = min(self.v1[0], min(self.v2[0], self.v3[0]))
+        self.max_x = max(self.v1[0], max(self.v2[0], self.v3[0]))
+        self.min_y = min(self.v1[1], min(self.v2[1], self.v3[1]))
+        self.max_y = max(self.v1[1], max(self.v2[1], self.v3[1]))
+
+        # sorted_by_x = sorted([self.v1, self.v2, self.v3], key=lambda v: v[0])
+        # sorted_by_y = sorted([self.v1, self.v2, self.v3], key=lambda v: v[1])
+        # self.min_x, self.max_x = sorted_by_x[0], sorted_by_x[-1]
+        # self.min_y, self.max_y = sorted_by_y[0], sorted_by_y[-1]
+
+    def baricentric_coordinates(self, point):
+        '''achando coordenadas baricentricas do ponto usando a regra de cramer para resolver o sistema'''
+        v0 = self.v2 - self.v1
+        v1 = self.v3 - self.v1
+        v2 = point - self.v1
+
+        d00 = np.dot(v0, v0)
+        d01 = np.dot(v0, v1)
+        d11 = np.dot(v1, v1)
+        d20 = np.dot(v2, v0)
+        d21 = np.dot(v2, v1)
+
+        denom = float(d00 * d11 - d01 * d01)
+
+        alfa = 0 if denom == 0 else (d11 * d20 - d01 * d21) / denom
+        beta = 0 if denom == 0 else (d00 * d21 - d01 * d20) / denom
+        gama = max(0, 1.0 - alfa - beta)
+
+        return alfa, beta, gama
+
+
+    def point_in_triangle(self, point):
+        sign = lambda p1, p2, p3: (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1])
+
+        b1 = sign(point, self.v1, self.v2) <= 0.0
+        b2 = sign(point, self.v2, self.v3) <= 0.0
+        b3 = sign(point, self.v3, self.v1) <= 0.0
+
+        return (b1 == b2) and (b2 == b3)
+
+
 
 
 

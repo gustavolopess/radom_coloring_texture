@@ -63,8 +63,8 @@ class Camera(object):
 
     def to_screen_coordinate_system(self, p):
         '''calculate projection coordinates'''
-        x = (self.d / self.hx) * (p[0] / p[2])
-        y = (self.d / self.hy) * (p[1] / p[2])
+        x = float(self.d / self.hx) * float(p[0] / p[2])
+        y = float(self.d / self.hy) * float(p[1] / p[2])
         '''convert to screen'''
         screen_coord = np.array(
             [(int)(((x + 1)  * (self.width/ 2))),
