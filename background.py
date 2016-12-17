@@ -54,8 +54,6 @@ def run(width, height):
     info("2) cena")
     sc = scene.Scene(settings.calice_input, settings.iluminacao_input)
 
-
-
     info("\t2.1) passar a posição da fonte de luz de coordenadas de mundo para coordenadas de vista")
     pl_view = cam.to_view_coordinate_system(sc.pl)
     sc.pl = pl_view
@@ -81,7 +79,7 @@ def run(width, height):
         tr_normal = cam.get_triangle_normal(p1, p2, p3)
         tr_normal = operations.vector.normalize(tr_normal)
         
-        sc.triangles_view_objects.append(Triangle(p1, p2, p3, tr_normal))  
+        sc.triangles_view_objects.append(Triangle(p1, p2, p3, norm=tr_normal))
         
         sc.points_normal[t[0] - 1] += tr_normal
         sc.points_normal[t[1] - 1] += tr_normal
@@ -93,24 +91,31 @@ def run(width, height):
         normalized_points_normal.append(operations.vector.normalize(pn))
     sc.points_normal = normalized_points_normal
 
-    info("\t2.6) Inicializa z-buffer.")
-
-    sc.init_zbuffer(width, height)
-
     info("\t2.6) para cada ponto do obj, projete-o para coord de tela 2D, sem descartar os pontos em coord 3D")
     view_2d = []
     for vp in sc.view_coordinates:
         view_2d.append(cam.to_screen_coordinate_system(vp))
     sc.screen_coordinates = view_2d
 
+
+    info("\t2.7) Inicializa z-buffer.")
+    sc.init_zbuffer(width, height)
+
+    info('\t\tpassando os triângulos para coordenadas de tela')
+    sc.create_triangle_screen_objects()
+
+    info("\t2.7) Realiza a varredura nos triangulos em coordenada de tela.")
+    sc.rasterize_screen_triangles()
+
+
     # with open("value_screen.txt", 'w') as view_txt:
     #     for p in sc.screen_coordinates:
     #         view_txt.write("%s, %s\n"%(p[0], p[1]))
 
-    info("\t2.7) Cria os Triangulos em coordenada de Tela")
-    sc.create_triangle_screen_objects()
-    
-    info("\t2.7) Realiza a varredura nos triangulos em coordenada de tela.")
-    sc.call_triangle_rasterization()
+    # info("\t2.7) Cria os Triangulos em coordenada de Tela")
+    # sc.create_triangle_screen_objects()
+    #
+    # info("\t2.7) Realiza a varredura nos triangulos em coordenada de tela.")
+    # sc.call_triangle_rasterization()
     
     return sc

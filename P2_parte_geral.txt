@@ -46,49 +46,50 @@ Matriz de mudanca de base da base canonica (coordenadas de mundo) para a base al
 // Passar a posicao da fonte de luz de coordenadas de mundo para coordenadas de vista, podendo descartar o Pl original:
 Pl_vista = [I]e,alfa * (Pl - C)
 
-Para cada ponto do objeto, projete-o para coordenadas de vista, podendo j· descartar os pontos em coordenadas de mundo:
+Para cada ponto do objeto, projete-o para coordenadas de vista, podendo j√° descartar os pontos em coordenadas de mundo:
 	P_objeto_vista = [I]e,alfa * (P_objeto_mundo - C)
 
 Inicializar as normais de todos os pontos do objeto com zero.
 
-Para cada tri‚ngulo:
-	Calcular a normal do tri‚ngulo e normaliz·-la. Somar ela ‡ normal de cada um dos 3 pontos (vÈrtices do tri‚ngulo).
+Para cada tri√¢ngulo:
+	Calcular a normal do tri√¢ngulo e normaliz√°-la. Somar ela √† normal de cada um dos 3 pontos (v√©rtices do tri√¢ngulo).
 
 Normalizar todas as normais.
 
 Para cada ponto do objeto, projete-o para coordenadas de tela 2D, sem descartar os pontos em coordenadas de vista 3D:
 	// a linha abaixo gera os pontos 2D parametrizados no intervalo [-1, 1]:
 	P_objeto_tela = ((d/hx)*(P_objeto_vista.x/P_objeto_vista.z), (d/hy)*(P_objeto_vista.y/P_objeto_vista.z))
-	// em seguida parametrizamos os pontos para as dimensıes da janela (intervalos [0, width] e [0, height]) ,
+	// em seguida parametrizamos os pontos para as dimens√µes da janela (intervalos [0, width] e [0, height]) ,
 	// transformando tudo em inteiro, podendo descartar os pontos gerados no intervalo [-1, 1].
 	P_objeto_tela.x = (int)((P_objeto_tela.x + 1) * width / 2)
-	P_objeto_tela.y = (int)((1 - P_objeto_tela.y) * height / 2) 
+	P_objeto_tela.y = (int)((1 - P_objeto_tela.y) * height / 2)
 
 Inicializar z-buffer com dimensoes [width][height] e +infinito em todas as posicoes.
 
-// Convers„o por varredura:
-// (os vÈrtices 2D correspondem aos pontos "P_objeto_tela" agrupados em triangulos conforme o arquivo de entrada, e
-// os vÈrtices 3D correspondem aos pontos "P_objeto_vista" agrupados em triangulos conforme o arquivo de entrada)
-Para cada tri‚ngulo, faÁa:
-	Para cada pixel P interno do triangulo, faÁa:
-		// Calcular coordenadas baricÍntricas (alfa, beta, gama) de P com relaÁ„o aos vÈrtices 2D:
+// Convers√£o por varredura:
+// (os v√©rtices 2D correspondem aos pontos "P_objeto_tela" agrupados em triangulos conforme o arquivo de entrada, e
+// os v√©rtices 3D correspondem aos pontos "P_objeto_vista" agrupados em triangulos conforme o arquivo de entrada)
+Para cada tri√¢ngulo, fa√ßa:
+
+
+		// Calcular coordenadas baric√™ntricas (alfa, beta, gama) de P com rela√ß√£o aos v√©rtices 2D:
 		Montar um sistema pra obter alfa, beta e gama tais que P = alfa*vertice_1_2D + beta*_vertice_2_2D + gama*vertice_3_2D e alfa + beta + gama = 1.
 		// Multiplicar coordenadas baricentricas pelos vertices 3D originais obtendo P', que eh uma aproximacao pro ponto 3D:
 		P' = alfa*vertice_1_3D + beta*vertice_2_3D + gama*vertice_3_3D
 		// Consulta ao z-buffer:
-		Se P'.z < z-buffer[P.x][P.y] (nao esquecer de tambem checar os limites do array z-buffer) ent„o:
+		Se P'.z < z-buffer[P.x][P.y] (nao esquecer de tambem checar os limites do array z-buffer) ent√£o:
 			z-buffer[P.x][P.y] = P'.z
-			// Calcular uma aproximaÁ„o para a normal do ponto P':
+			// Calcular uma aproxima√ß√£o para a normal do ponto P':
 			N = alfa*Normal_vertice_1 + beta*Normal_vertice_2 + gama*Normal_vertice_3
 			Calcular o vetor V = -P'
 			Calcular o vetor L = Pl_vista - P'
 			Normalizar N, V e L.
 			Se V . N < 0, inverter o sinal da normal: N' = -N'.
 			Se N . L < 0,
-				n„o possui componentes difusa nem especular.
-			Sen„o,
+				n√£o possui componentes difusa nem especular.
+			Sen√£o,
 				Calcular o vetor R = (2(N . L)N) - L.
 				Normalizar R.
-				Se R . V < 0, n„o possui componente especular.
+				Se R . V < 0, n√£o possui componente especular.
 			Substituir no modelo de Phong, obtendo a cor do pixel atual. Se alguma componente (r,g,b) der mais que 255, deixe-a em 255.
 			Pintar o pixel (P.x, P.y) com a cor obtida.
