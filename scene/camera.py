@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import operations.vector
-from config import Settings
 
-settings = Settings()
 
 class Camera(object):
-
     def __init__(self, camera_input, width=800, height=600):
         super(Camera, self).__init__()
 

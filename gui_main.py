@@ -4,12 +4,9 @@ from OpenGL.raw.GLUT.constants import GLUT_RGB
 
 from OpenGL.GL import *
 from OpenGL.GLUT import *
-from OpenGL.GLU import *
 from background import run
 from config import Settings
-import dialog
-from PyQt4 import QtGui
-import argparse, sys, dialog, os.path
+import argparse, sys, os.path
 
 
 width, height = 800, 600
@@ -26,10 +23,10 @@ random_factor = 0
 
 window = None
 
-
 PROMPT = ("ESC - EXIT","C - CHANGE OBJECT FILE")
 
-def checkArgs():
+
+def check_args():
     global colors_to_randomize, random_factor
 
     parser = argparse.ArgumentParser(description="random texture through coloring")
@@ -68,7 +65,7 @@ def render():
     glutSwapBuffers()
 
 
-def handleKeyboard(*args):
+def handle_keyboard(*args):
     global settings
     ESC = '\x1b'
 
@@ -103,7 +100,7 @@ def init():
 
 
 if __name__ == '__main__':
-    checkArgs()
+    check_args()
 
     print "\nPress 'c' to change the object file.\nPress ESC to exit\n"
     glutInit()
@@ -113,8 +110,8 @@ if __name__ == '__main__':
     window = glutCreateWindow('Random Color Texture')
 
     glutDisplayFunc(render)
-    glutKeyboardFunc(handleKeyboard)
+    glutKeyboardFunc(handle_keyboard)
 
-    glClearColor(1,1,1,1)
+    glClearColor(0, 0, 0, 0)
     init()
     glutMainLoop()
