@@ -1,3 +1,7 @@
+from OpenGL.raw.GLUT import glutPostRedisplay
+from OpenGL.GLUT import *
+from OpenGL.GL import *
+
 class Settings:
     def __init__(self):
         # debug boolean
@@ -9,5 +13,4 @@ class Settings:
         self.object_input = 'input/calice.txt'
         # self.calice_input = 'input/vader_object.txt'
         self.iluminacao_input = 'input/iluminacao.txt'
-
 

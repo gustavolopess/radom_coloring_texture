@@ -13,24 +13,24 @@ class Camera(object):
         with open(camera_input, 'r') as camera_config:
             configs = camera_config.readlines()
 
-        self.camera_position = np.array([float(configs[0].split(" ")[0]),
-                                    float(configs[0].split(" ")[1]),
-                                    float(configs[0].split(" ")[2])
-                                    ])
+            self.camera_position = np.array([float(configs[0].split(" ")[0]),
+                                        float(configs[0].split(" ")[1]),
+                                        float(configs[0].split(" ")[2])
+                                        ])
 
-        self.camera_n = np.array([float(configs[1].split(" ")[0]),
-                             float(configs[1].split(" ")[1]),
-                             float(configs[1].split(" ")[2])
-                             ])
+            self.camera_n = np.array([float(configs[1].split(" ")[0]),
+                                 float(configs[1].split(" ")[1]),
+                                 float(configs[1].split(" ")[2])
+                                 ])
 
-        self.camera_v = np.array([float(configs[2].split(" ")[0]),
-                             float(configs[2].split(" ")[1]),
-                             float(configs[2].split(" ")[2])
-                             ])
+            self.camera_v = np.array([float(configs[2].split(" ")[0]),
+                                 float(configs[2].split(" ")[1]),
+                                 float(configs[2].split(" ")[2])
+                                 ])
 
-        self.d = float(configs[3].split(" ")[0])
-        self.hx = float(configs[3].split(" ")[1])
-        self.hy = float(configs[3].split(" ")[2])
+            self.d = float(configs[3].split(" ")[0])
+            self.hx = float(configs[3].split(" ")[1])
+            self.hy = float(configs[3].split(" ")[2])
 
         self.N = operations.vector.normalize(self.camera_n)
         self.V = operations.vector.normalize(
@@ -41,12 +41,6 @@ class Camera(object):
         self.width = width
         self.height = height
 
-        if settings.debug:
-            print "#" * 50
-            print "UVN MATRIX"
-            print self.UVN_matrice
-            print "#" * 50
-            print
 
     '''retorna o ponto p no sistema de coordenadas da camera (camera_coordinate_system)'''
     def to_view_coordinate_system(self, p):
@@ -63,8 +57,8 @@ class Camera(object):
 
     def to_screen_coordinate_system(self, p):
         '''calculate projection coordinates'''
-        x = float(self.d / self.hx) * float(p[0] / p[2])
-        y = float(self.d / self.hy) * float(p[1] / p[2])
+        x = float(self.d / self.hx) * (p[0] / p[2])
+        y = float(self.d / self.hy) * (p[1] / p[2])
         '''convert to screen'''
         screen_coord = np.array(
             [(int)(((x + 1)  * (self.width/ 2))),

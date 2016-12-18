@@ -1,8 +1,16 @@
-from OpenGL.GLUT import *
+from OpenGL.raw.GLUT import glutBitmapCharacter
+
+from OpenGL.raw.GLUT.constants import GLUT_RGB
+
 from OpenGL.GL import *
+from OpenGL.GLUT import *
+from OpenGL.GLU import *
 from background import run
 import argparse, sys
+from config import Settings
 width, height = 800, 600
+
+settings = Settings()
 
 colors_to_randomize = {
     'R': False,
@@ -11,6 +19,11 @@ colors_to_randomize = {
 }
 
 random_factor = 0
+
+window = None
+
+
+PROMPT = ("ESC - EXIT","C - CHANGE OBJECT FILE")
 
 def checkArgs():
     global colors_to_randomize, random_factor
@@ -41,12 +54,19 @@ def render():
     glPointSize(2.0)
     glBegin(GL_POINTS)
     glColor3f(0.0, 1.0, 1.0)
-    
-    sc = run(width, height, colors_to_randomize, float(random_factor))
-    
+
+    sc = run(width, height, colors_to_randomize, float(random_factor), settings)
+
     glEnd()
     glFlush()
     glutSwapBuffers()
+
+
+def change_object():
+    global settings
+    new_path = raw_input()
+    settings.object_input = new_path
+    glutPostRedisplay()
 
 
 def init():
@@ -63,12 +83,16 @@ def init():
 if __name__ == '__main__':
     checkArgs()
 
+    print "To change the object input you must type the path to object's file"
     glutInit()
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA)
     glutInitWindowSize(width, height)
-    glutInitWindowPosition(100, 100)
-    glutCreateWindow('Projeto - PG 2')
+    glutInitWindowPosition(0, 0)
+    window = glutCreateWindow('Projeto - PG 2')
+
     glutDisplayFunc(render)
-    glClearColor(0, 0, 0, 0)
+    glutIdleFunc(change_object)
+
+    glClearColor(1, 1, 1, 1)
     init()
     glutMainLoop()
