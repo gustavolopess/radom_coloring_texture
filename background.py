@@ -16,7 +16,7 @@ def run(width, height, colors_to_randomize, random_factor, settings):
     logging.basicConfig(level=logging.INFO, format='%(message)s')
     info = logging.info
     '''Recebe o fator de aleatorização da textura aleatoria do usuario bem como os canais'''
-    info('%s %f' % (colors_to_randomize, random_factor))
+    # info('%s %f' % (colors_to_randomize, random_factor))
 
     '''passos:'''
     #info("1) camera")

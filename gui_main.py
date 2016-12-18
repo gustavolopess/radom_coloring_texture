@@ -6,8 +6,12 @@ from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 from background import run
-import argparse, sys
 from config import Settings
+import dialog
+from PyQt4 import QtGui
+import argparse, sys, dialog, os.path
+
+
 width, height = 800, 600
 
 settings = Settings()
@@ -55,18 +59,28 @@ def render():
     glBegin(GL_POINTS)
     glColor3f(0.0, 1.0, 1.0)
 
+    print '\nLoading new object, please wait.'
     sc = run(width, height, colors_to_randomize, float(random_factor), settings)
+    print 'object successfully loaded\n'
 
     glEnd()
     glFlush()
     glutSwapBuffers()
 
 
-def change_object():
+def handleKeyboard(*args):
     global settings
-    new_path = raw_input()
-    settings.object_input = new_path
-    glutPostRedisplay()
+    ESC = '\x1b'
+
+    if args[0] == ESC:
+        glutDestroyWindow(window)
+    elif args[0] == 'c':
+        path = raw_input('\n> enter the path to new object file: ')
+        if os.path.isfile(path):
+            settings.object_input = path
+            glutPostRedisplay()
+        else:
+            print 'Sorry, the path you entered does not exist.\n'
 
 
 def init():
@@ -83,16 +97,16 @@ def init():
 if __name__ == '__main__':
     checkArgs()
 
-    print "To change the object input you must type the path to object's file"
+    print "\nPress 'c' to change the object file.\nPress ESC to exit\n"
     glutInit()
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA)
     glutInitWindowSize(width, height)
     glutInitWindowPosition(0, 0)
-    window = glutCreateWindow('Projeto - PG 2')
+    window = glutCreateWindow('Random Color Texture')
 
     glutDisplayFunc(render)
-    # glutIdleFunc(change_object)
+    glutKeyboardFunc(handleKeyboard)
 
-    glClearColor(1, 1, 1, 1)
+    glClearColor(0, 0, 0, 0)
     init()
     glutMainLoop()
