@@ -42,8 +42,7 @@ class Scene(object):
         self.load_ilumination(ilumination_input)
 
     def init_zbuffer(self, height, width):
-        # self.z_buffer = np.array([[sys.maxint]*height for i in range(0, width)])
-        self.z_buffer = np.full((5000, 5000), sys.maxint, dtype=float)
+        self.z_buffer = np.full((max(height, 5000), max(width, 5000)), sys.maxint, dtype=float)
 
     def load_vertices(self, calice_input):
         with open(calice_input) as calice_config:
@@ -156,10 +155,30 @@ class Scene(object):
 
 
     def rasterize_screen_triangles(self, colors_to_randomize, random_factor):
+        '''
+        atentar para identação
+        em python um bloco pode ter vários outros blocos dentro do seu escopo
+        e no bloco-pai vc pode chamar os blocos-filhos
+
+        :param colors_to_randomize: cores que devem ser randomizadas no Od, conforme passado na entrada
+        :param random_factor: fator de aleatorização a ser aplicado nas cores
+        :return: None
+        '''
 
         def yscan(triangle):
+            '''
+            yscan conforme visto
+            com dois casos especiais: bottom_flat e top_flat
+            e o caso geral em que o triângulo é dividido em um bottom_flat e outro top_flat
 
+            :param triangle: triangulo a ser rasterizado
+            :return: None
+            '''
             def fill_bottom_flat_triangle(vertices):
+                '''
+                :param vertices: vertices do triangulo ordenados pelo Y
+                :return: None
+                '''
                 invslope1 = (vertices[1][0] - vertices[0][0]) / (vertices[1][1] - vertices[0][1])
                 invslope2 = (vertices[2][0] - vertices[0][0]) / (vertices[2][1] - vertices[0][1])
 
@@ -170,12 +189,17 @@ class Scene(object):
 
                 scanlineY = v[0][1]
                 while scanlineY <= v[1][1]:
+                    ''' para cada linha do y scan, rasteriza a linha'''
                     draw_line(triangle, curx1, curx2, scanlineY)
                     curx1 += invslope1
                     curx2 += invslope2
                     scanlineY += 1
 
             def fill_top_flat_triangle(vertices):
+                '''
+                    :param vertices: vertices do triangulo ordenados pelo Y
+                    :return: None
+                '''
                 invslope1 = (vertices[2][0] - vertices[0][0]) / (vertices[2][1] - vertices[0][1])
                 invslope2 = (vertices[2][0] - vertices[1][0]) / float(vertices[2][1] - vertices[1][1])
 
@@ -191,16 +215,23 @@ class Scene(object):
                     curx2 -= invslope2
                     scanlineY -= 1
 
+            ''' primeiro os vetores sao ordenados pelos seus Y'''
             v = sorted([triangle.v1, triangle.v2, triangle.v3], key=lambda vx: vx[1])
+            '''notação: v1 == v[0], v1.x == v[0][0], v1.y == v[0][1] etc'''
+
             if v[0][1] == v[1][1] == v[2][1]:
+                ''' se for um triangulo "sem altura/colinear" ele é rasterizado como uma linha.'''
                 curx1 = min(v[0][0], min(v[1][0], v[2][0]))
                 curx2 = max(v[0][0], max(v[1][0], v[2][0]))
                 draw_line(triangle, curx1, curx2, v[0][1])
             elif v[1][1] == v[2][1]:
+                ''' caso bottom_flat'''
                 fill_bottom_flat_triangle(v)
             elif v[0][1] == v[1][1]:
+                '''caso top_flat'''
                 fill_top_flat_triangle(v)
             else:
+                ''' caso geral '''
                 v4 = np.array([
                     int(v[0][0] + (float(v[1][1] - v[0][1]) / float(v[2][1] - v[0][1])) * (v[2][0] - v[0][0])),
                     v[1][1]
@@ -211,14 +242,28 @@ class Scene(object):
 
 
         def draw_line(triangle, curx1, curx2, y):
+            '''
+            :param triangle: triangulo a ser rasterizado
+            :param curx1: Xmin, onde começa a rasterização da linha atual
+            :param curx2: Xmax, onde termina a rasterização da linha atual
+            :param y: Yscan, indica qual linha (Y = y) está sendo rasterizada
+            :return: None
+            '''
             t = triangle
             x_min = min(curx1, curx2)
             x_max = max(curx1, curx2)
             for x in range(int(x_min), int(x_max)):
                 pixel = np.array([x, y])
                 if t.point_in_triangle(pixel):
+                    '''
+                    verifica se o pixel realmente pertence ao triângulo para corrigir casos de erro de precisão
+                    do python
+                    '''
+
+                    ''' calcula o pixel em coordenadas baricêntricas do triângulo atual '''
                     alfa, beta, gama = t.barycentric_coordinates(pixel)
 
+                    ''' passa os vertices correspondentes em coordenadas de vista (3D) para o sistema baricentrico encontrado'''
                     _P = alfa * self.view_coordinates[t.ind1 - 1] + beta * self.view_coordinates[t.ind2 - 1] + gama * self.view_coordinates[t.ind3 - 1]
 
                     '''consulta ao Z-buffer'''
