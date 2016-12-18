@@ -78,9 +78,17 @@ def handleKeyboard(*args):
         path = raw_input('\n> enter the path to new object file: ')
         if os.path.isfile(path):
             settings.object_input = path
-            glutPostRedisplay()
         else:
             print 'Sorry, the path you entered does not exist.\n'
+            return
+        camera_path = raw_input('> enter the path to correspondent camera file: ')
+        if os.path.isfile(camera_path):
+            settings.camera_input = camera_path
+        else:
+            print 'The camera path you entered does not exist. The actual will be used.\n'
+
+        glutPostRedisplay()
+
 
 
 def init():
@@ -107,6 +115,6 @@ if __name__ == '__main__':
     glutDisplayFunc(render)
     glutKeyboardFunc(handleKeyboard)
 
-    glClearColor(0, 0, 0, 0)
+    glClearColor(1,1,1,1)
     init()
     glutMainLoop()

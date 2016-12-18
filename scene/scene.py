@@ -233,11 +233,9 @@ class Scene(object):
 
             v = sorted([triangle.v1, triangle.v2, triangle.v3], key=lambda vx: vx[1])
             if v[0][1] == v[1][1] == v[2][1]:
-                for y in range(triangle.min_y, triangle.max_y+1):
-                    draw_line(triangle, triangle.min_x, triangle.max_x, y)
-                # curx1 = min(v[0][0], min(v[1][0], v[2][0]))
-                # curx2 = max(v[0][0], max(v[1][0], v[2][0]))
-                # draw_line(triangle, curx1, curx2, v[0][1])
+                curx1 = min(v[0][0], min(v[1][0], v[2][0]))
+                curx2 = max(v[0][0], max(v[1][0], v[2][0]))
+                draw_line(triangle, curx1, curx2, v[0][1])
             elif v[1][1] == v[2][1]:
                 fill_bottom_flat_triangle(v)
             elif v[0][1] == v[1][1]:
