@@ -38,9 +38,9 @@ class Triangle(object):
 
         denom = float(d00 * d11 - d01 * d01)
 
-        alfa = 0 if denom == 0 else (d11 * d20 - d01 * d21) / denom
-        beta = 0 if denom == 0 else (d00 * d21 - d01 * d20) / denom
-        gama = max(0, 1.0 - alfa - beta)
+        beta = 0 if denom == 0 else (d11 * d20 - d01 * d21) / denom
+        gama = 0 if denom == 0 else (d00 * d21 - d01 * d20) / denom
+        alfa = max(0, 1.0 - gama - beta)
 
         return alfa, beta, gama
 

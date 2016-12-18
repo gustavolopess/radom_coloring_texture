@@ -91,7 +91,7 @@ if __name__ == '__main__':
     window = glutCreateWindow('Projeto - PG 2')
 
     glutDisplayFunc(render)
-    glutIdleFunc(change_object)
+    # glutIdleFunc(change_object)
 
     glClearColor(1, 1, 1, 1)
     init()

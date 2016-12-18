@@ -8,6 +8,7 @@ from operations.linha import Linha
 from operations.rgb import RGB
 from OpenGL.GLUT import *
 from OpenGL.GL import *
+import math
 
 
 import sys
@@ -51,7 +52,7 @@ class Scene(object):
 
     def init_zbuffer(self, height, width):
         # self.z_buffer = np.array([[sys.maxint]*height for i in range(0, width)])
-        self.z_buffer = np.full((height, width), sys.maxint, dtype=float)
+        self.z_buffer = np.full((5000, 5000), sys.maxint, dtype=float)
 
     def load_vertices(self, calice_input):
         with open(calice_input) as calice_config:
@@ -129,7 +130,7 @@ class Scene(object):
         id = np.array([0.0, 0.0, 0.0])
         ie = np.array([0.0, 0.0, 0.0])
 
-        v = -vector.normalize(ponto)
+        v = vector.normalize(-ponto)
         if (np.dot(v,N) < 0):
             N = -N
             
@@ -144,9 +145,9 @@ class Scene(object):
 
             id = (od * self.il) * self.kd * (np.dot(N,l))
 
-            r = vector.normalize((N * 2)*(np.dot(N, l)) - l)
+            r = vector.normalize((2*N*np.dot(N, l)) - l)
             if (np.dot(v,r) >= 0):
-                ie = (self.il) * self.ks * (pow(float(np.dot(r, v)), self.n_factor))
+                ie = (self.il) * self.ks * (pow(float(np.dot(v,r)), self.n_factor))
 
         color = ia + id + ie
 
@@ -199,13 +200,13 @@ class Scene(object):
         def yscan(triangle):
 
             def fill_bottom_flat_triangle(vertices):
-                invslope1 = float(vertices[1][0] - vertices[0][0]) / float(vertices[1][1] - vertices[0][1])
-                invslope2 = float(vertices[2][0] - vertices[0][0]) / float(vertices[2][1] - vertices[0][1])
+                invslope1 = (vertices[1][0] - vertices[0][0]) / (vertices[1][1] - vertices[0][1])
+                invslope2 = (vertices[2][0] - vertices[0][0]) / (vertices[2][1] - vertices[0][1])
 
                 if invslope1 > invslope2:
                     invslope1, invslope2 = invslope2, invslope1
 
-                curx1 = curx2 = float(v[0][0])
+                curx1 = curx2 = v[0][0]
 
                 scanlineY = v[0][1]
                 while scanlineY <= v[1][1]:
@@ -215,13 +216,13 @@ class Scene(object):
                     scanlineY += 1
 
             def fill_top_flat_triangle(vertices):
-                invslope1 = float(vertices[2][0] - vertices[0][0]) / float(vertices[2][1] - vertices[0][1])
-                invslope2 = float(vertices[2][0] - vertices[1][0]) / float(vertices[2][1] - vertices[1][1])
+                invslope1 = (vertices[2][0] - vertices[0][0]) / (vertices[2][1] - vertices[0][1])
+                invslope2 = (vertices[2][0] - vertices[1][0]) / float(vertices[2][1] - vertices[1][1])
 
                 if invslope2 > invslope1:
                     invslope1, invslope2 = invslope2, invslope1
 
-                curx1 = curx2 = float(v[2][0])
+                curx1 = curx2 = v[2][0]
 
                 scanlineY = v[2][1]
                 while scanlineY > v[0][1]:
@@ -232,9 +233,11 @@ class Scene(object):
 
             v = sorted([triangle.v1, triangle.v2, triangle.v3], key=lambda vx: vx[1])
             if v[0][1] == v[1][1] == v[2][1]:
-                curx1 = min(v[0][0], min(v[1][0], v[2][0]))
-                curx2 = max(v[0][0], max(v[1][0], v[2][0]))
-                draw_line(triangle, curx1, curx2, v[0][1])
+                for y in range(triangle.min_y, triangle.max_y+1):
+                    draw_line(triangle, triangle.min_x, triangle.max_x, y)
+                # curx1 = min(v[0][0], min(v[1][0], v[2][0]))
+                # curx2 = max(v[0][0], max(v[1][0], v[2][0]))
+                # draw_line(triangle, curx1, curx2, v[0][1])
             elif v[1][1] == v[2][1]:
                 fill_bottom_flat_triangle(v)
             elif v[0][1] == v[1][1]:
@@ -253,9 +256,9 @@ class Scene(object):
             t = triangle
             x_min = min(curx1, curx2)
             x_max = max(curx1, curx2)
-            for x in range(int(x_min), int(x_max) + 1):
+            for x in range(int(x_min), int(x_max)):
                 pixel = np.array([x, y])
-                if triangle.point_in_triangle(pixel):
+                if t.point_in_triangle(pixel):
                     alfa, beta, gama = t.baricentric_coordinates(pixel)
 
                     _P = alfa * self.view_coordinates[t.ind1 - 1] + beta * self.view_coordinates[t.ind2 - 1] + gama * self.view_coordinates[t.ind3 - 1]
@@ -277,8 +280,8 @@ class Scene(object):
         for t in self.triangles_screen_objects:
             '''para cada pixel P interno do triângulo'''
             yscan(t)
-            # for y in range(t.min_y, t.max_y+1):
-            #     draw_line(t, t.min_x, t.max_x, y)
+            for y in range(t.min_y, t.max_y+1):
+                draw_line(t, t.min_x, t.max_x, y)
             # for x in range(t.min_x, t.max_x+1):
             #     for y in range(t.min_y, t.max_y+1):
             #         pixel = np.array([x, y])
