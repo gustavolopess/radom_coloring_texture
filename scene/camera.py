@@ -10,24 +10,28 @@ class Camera(object):
         with open(camera_input, 'r') as camera_config:
             configs = camera_config.readlines()
 
-            self.camera_position = np.array([float(configs[0].split(" ")[0]),
-                                        float(configs[0].split(" ")[1]),
-                                        float(configs[0].split(" ")[2])
+            position_config_splited = configs[0].split()
+            self.camera_position = np.array([float(position_config_splited[0]),
+                                        float(position_config_splited[1]),
+                                        float(position_config_splited[2])
                                         ])
 
-            self.camera_n = np.array([float(configs[1].split(" ")[0]),
-                                 float(configs[1].split(" ")[1]),
-                                 float(configs[1].split(" ")[2])
+            n_config_splited = configs[1].split()
+            self.camera_n = np.array([float(n_config_splited[0]),
+                                 float(n_config_splited[1]),
+                                 float(n_config_splited[2])
                                  ])
 
-            self.camera_v = np.array([float(configs[2].split(" ")[0]),
-                                 float(configs[2].split(" ")[1]),
-                                 float(configs[2].split(" ")[2])
+            v_config_splited = configs[2].split()
+            self.camera_v = np.array([float(v_config_splited[0]),
+                                 float(v_config_splited[1]),
+                                 float(v_config_splited[2])
                                  ])
 
-            self.d = float(configs[3].split(" ")[0])
-            self.hx = float(configs[3].split(" ")[1])
-            self.hy = float(configs[3].split(" ")[2])
+            params_config_splited = configs[3].split()
+            self.d = float(params_config_splited[0])
+            self.hx = float(params_config_splited[1])
+            self.hy = float(params_config_splited[2])
 
         self.N = operations.vector.normalize(self.camera_n)
         self.V = operations.vector.normalize(

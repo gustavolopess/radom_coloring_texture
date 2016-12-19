@@ -11,7 +11,7 @@ class Scene(object):
 
     def __init__(self, calice_input, ilumination_input):
         super(Scene, self).__init__()
-        
+
         self.debug = True
 
         self.r = 0
@@ -41,9 +41,6 @@ class Scene(object):
         self.load_vertices(calice_input)
         self.load_ilumination(ilumination_input)
 
-    def init_zbuffer(self, height, width):
-        self.z_buffer = np.full((max(height, 5000), max(width, 5000)), sys.maxint, dtype=float)
-
     def load_vertices(self, calice_input):
         with open(calice_input) as calice_config:
             lines = calice_config.readlines()
@@ -51,48 +48,55 @@ class Scene(object):
         number_points = int(lines[0].split(" ")[0])
 
         for x in range(1, number_points + 1):
+            points_splited = lines[x].splitlines()[0].split()
             self.points.append(np.array([
-                float(lines[x].splitlines()[0].split(" ")[0]),
-                float(lines[x].splitlines()[0].split(" ")[1]),
-                float(lines[x].splitlines()[0].split(" ")[2])
+                float(points_splited[0]),
+                float(points_splited[1]),
+                float(points_splited[2])
             ]))
 
             self.points_normal.append(np.array([0.0, 0.0, 0.0]))
 
         for x in range(number_points + 1, len(lines)):
+            triangles_splited = lines[x].splitlines()[0].split()
             self.triangles.append(np.array([
-                int(lines[x].splitlines()[0].split(" ")[0]),
-                int(lines[x].splitlines()[0].split(" ")[1]),
-                int(lines[x].splitlines()[0].split(" ")[2])
+                int(triangles_splited[0]),
+                int(triangles_splited[1]),
+                int(triangles_splited[2])
             ]))
 
 
     def load_ilumination(self, ilumination_input):
         '''Carrega os dados de illuminação'''
         with open(ilumination_input, 'r') as illumination:
-            lines = illumination.readlines()
-            self.n_factor = float(lines[-1])
-            self.pl = np.array([float(lines[0].split(" ")[0]),
-                                float(lines[0].split(" ")[1]),
-                                float(lines[0].split(" ")[2])
-                                ])
-            self.ka = float(lines[1])
+            lines_ilumination = illumination.readlines()
+            self.n_factor = float(lines_ilumination[-1])
 
-            self.ia = np.array([float(lines[2].split(" ")[0]),
-                                float(lines[2].split(" ")[1]),
-                                float(lines[2].split(" ")[2])
+            pl_splited = lines_ilumination[0].split()
+            self.pl = np.array([float(pl_splited[0]),
+                                float(pl_splited[1]),
+                                float(pl_splited[2])
                                 ])
-            self.kd = float(lines[3])
+            self.ka = float(lines_ilumination[1])
 
-            self.od = np.array([float(lines[4].split(" ")[0]),
-                                float(lines[4].split(" ")[1]),
-                                float(lines[4].split(" ")[2])
+            ia_splited = lines_ilumination[2].split()
+            self.ia = np.array([float(ia_splited[0]),
+                                float(ia_splited[1]),
+                                float(ia_splited[2])
                                 ])
-            self.ks = float(lines[5])
+            self.kd = float(lines_ilumination[3])
 
-            self.il = np.array([float(lines[6].split(" ")[0]),
-                                float(lines[6].split(" ")[1]),
-                                float(lines[6].split(" ")[2])
+            od_splited = lines_ilumination[4].split()
+            self.od = np.array([float(od_splited[0]),
+                                float(od_splited[1]),
+                                float(od_splited[2])
+                                ])
+            self.ks = float(lines_ilumination[5])
+
+            il_splited = lines_ilumination[6].split()
+            self.il = np.array([float(il_splited[0]),
+                                float(il_splited[1]),
+                                float(il_splited[2])
                                 ])
 
     '''a iluminação de phong é caracterizada pela junção dos vetores de iluminação
@@ -122,7 +126,7 @@ class Scene(object):
         v = vector.normalize(-ponto)
         if (np.dot(v,N) < 0):
             N = -N
-            
+
         if (np.dot(N, l) >= 0):
             attenuation = random.uniform(1-random_factor, 1)
 
@@ -152,6 +156,10 @@ class Scene(object):
         for t in self.triangles:
             p1, p2, p3 = self.screen_coordinates[t[0] - 1], self.screen_coordinates[t[1] - 1], self.screen_coordinates[t[2] - 1]
             self.triangles_screen_objects.append(Triangle(p1, p2, p3, t[0], t[1], t[2]))
+
+
+    def init_zbuffer(self, height, width):
+        self.z_buffer = np.full((max(height, 5000), max(width, 5000)), sys.maxint, dtype=float)
 
 
     def rasterize_screen_triangles(self, colors_to_randomize, random_factor):

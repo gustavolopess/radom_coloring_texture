@@ -84,6 +84,31 @@ def handle_keyboard(*args):
         else:
             print 'The camera path you entered does not exist. The actual will be used.\n'
 
+        new_random_factor = raw_input('> enter the new random factor (between 0 and 1), if you want to change the current: ')
+        if len(new_random_factor) > 0:
+            try:
+                global random_factor
+                tmp = float(new_random_factor)
+                random_factor = tmp
+            except:
+                print '%r is a invalid random factor. It will not change.'
+
+        new_random_colors = raw_input('> enter the new colors you want to randomize (RGB), if you want to change the current: ')
+        global colors_to_randomize
+        if len(new_random_colors) > 0:
+            for c in new_random_colors:
+                if str(c).upper() in ['R', 'G', 'B']:
+                    for color in ['R', 'G', 'B']:
+                        colors_to_randomize[color] = False
+                    for c2 in new_random_colors:
+                        if str(c2).upper() in ['R', 'G', 'B']:
+                            colors_to_randomize[str(c2).upper()] = True
+                    break
+
+
+
+
+
         glutPostRedisplay()
 
 
