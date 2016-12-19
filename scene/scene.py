@@ -1,25 +1,17 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-from config import Settings
 from operations import vector
-from operations.escalonar import Escalona
-from operator import itemgetter
-from operations.triangle import Triangle, TriangleWithRef, PointP4
-from operations.linha import Linha
-from operations.rgb import RGB
-from OpenGL.GLUT import *
+from operations.triangle import Triangle
 from OpenGL.GL import *
+import sys, random
 
-import sys
-
-settings = Settings()
 
 class Scene(object):
     """docstring for Scene"""
 
     def __init__(self, calice_input, ilumination_input):
         super(Scene, self).__init__()
-        
+
         self.debug = True
 
         self.r = 0
@@ -49,60 +41,64 @@ class Scene(object):
         self.load_vertices(calice_input)
         self.load_ilumination(ilumination_input)
 
-    def init_zbuffer(self, height, width):
-        self.z_buffer = np.array([[sys.maxint]*height for i in range(0, width)])
-
     def load_vertices(self, calice_input):
         with open(calice_input) as calice_config:
             lines = calice_config.readlines()
 
         number_points = int(lines[0].split(" ")[0])
-        triangles = int(lines[0].split(" ")[1])
 
         for x in range(1, number_points + 1):
+            points_splited = lines[x].splitlines()[0].split()
             self.points.append(np.array([
-                float(lines[x].splitlines()[0].split(" ")[0]),
-                float(lines[x].splitlines()[0].split(" ")[1]),
-                float(lines[x].splitlines()[0].split(" ")[2])
+                float(points_splited[0]),
+                float(points_splited[1]),
+                float(points_splited[2])
             ]))
 
             self.points_normal.append(np.array([0.0, 0.0, 0.0]))
 
         for x in range(number_points + 1, len(lines)):
+            triangles_splited = lines[x].splitlines()[0].split()
             self.triangles.append(np.array([
-                int(lines[x].splitlines()[0].split(" ")[0]),
-                int(lines[x].splitlines()[0].split(" ")[1]),
-                int(lines[x].splitlines()[0].split(" ")[2])
+                int(triangles_splited[0]),
+                int(triangles_splited[1]),
+                int(triangles_splited[2])
             ]))
 
 
     def load_ilumination(self, ilumination_input):
         '''Carrega os dados de illuminação'''
         with open(ilumination_input, 'r') as illumination:
-            lines = illumination.readlines()
-            self.n_factor = float(lines[-1])
-            self.pl = np.array([float(lines[0].split(" ")[0]),
-                                float(lines[0].split(" ")[1]),
-                                float(lines[0].split(" ")[2])
-                                ])
-            self.ka = float(lines[1])
+            lines_ilumination = illumination.readlines()
+            self.n_factor = float(lines_ilumination[-1])
 
-            self.ia = np.array([float(lines[2].split(" ")[0]),
-                                float(lines[2].split(" ")[1]),
-                                float(lines[2].split(" ")[2])
+            pl_splited = lines_ilumination[0].split()
+            self.pl = np.array([float(pl_splited[0]),
+                                float(pl_splited[1]),
+                                float(pl_splited[2])
                                 ])
-            self.kd = float(lines[3])
+            self.ka = float(lines_ilumination[1])
 
-            self.od = np.array([float(lines[4].split(" ")[0]),
-                                float(lines[4].split(" ")[1]),
-                                float(lines[4].split(" ")[2])
+            ia_splited = lines_ilumination[2].split()
+            self.ia = np.array([float(ia_splited[0]),
+                                float(ia_splited[1]),
+                                float(ia_splited[2])
                                 ])
-            self.ks = float(lines[5])
+            self.kd = float(lines_ilumination[3])
 
-            self.il = np.array([float(lines[6].split(" ")[0]),
-                                float(lines[6].split(" ")[1]),
-                                float(lines[6].split(" ")[2])
+            od_splited = lines_ilumination[4].split()
+            self.od = np.array([float(od_splited[0]),
+                                float(od_splited[1]),
+                                float(od_splited[2])
                                 ])
+            self.ks = float(lines_ilumination[5])
+
+            il_splited = lines_ilumination[6].split()
+            self.il = np.array([float(il_splited[0]),
+                                float(il_splited[1]),
+                                float(il_splited[2])
+                                ])
+
     '''a iluminação de phong é caracterizada pela junção dos vetores de iluminação
         de ambiente, difusa e especular'''
     '''
@@ -118,218 +114,184 @@ class Scene(object):
     '''
         final_color = ambient_component + diffuse_component + specular_component
     '''
-
-    def pixel_phong_ilumination(self, ponto, N):
+    def pixel_phong_ilumination(self, ponto, N, colors_to_randomize, random_factor):
         ia = self.ia*self.ka
         l = (self.pl - ponto)
         l = vector.normalize(l)
         N = vector.normalize(N)
 
-        id = np.array([0,0,0])
-        ie = np.array([0,0,0])
+        id = np.array([0.0, 0.0, 0.0])
+        ie = np.array([0.0, 0.0, 0.0])
 
-        v = -vector.normalize(ponto)
-        if (np.dot(N,v) < 0):
+        v = vector.normalize(-ponto)
+        if (np.dot(v,N) < 0):
             N = -N
-            
-        if (np.dot(N, l) >= 0):
-            id = (self.od * self.il) * self.kd * (np.dot(N,l))
 
-            r = vector.normalize((N * 2)*(np.dot(N,l)) - l)
+        if (np.dot(N, l) >= 0):
+            attenuation = random.uniform(1-random_factor, 1)
+
+            random_r = attenuation if colors_to_randomize['R'] is True else 1
+            random_g = attenuation if colors_to_randomize['G'] is True else 1
+            random_b = attenuation if colors_to_randomize['B'] is True else 1
+
+            od = np.array([self.od[0]*random_r, self.od[1]*random_g, self.od[2]*random_b])
+
+            id = (od * self.il) * self.kd * (np.dot(N,l))
+
+            r = vector.normalize((2*N*np.dot(N, l)) - l)
             if (np.dot(v,r) >= 0):
-                ie = (self.il) * self.ks * (pow(np.dot(r, v), self.n_factor))
+                ie = (self.il) * self.ks * (pow(float(np.dot(v,r)), self.n_factor))
 
         color = ia + id + ie
+
+        for i in range(0, 3):
+            color[i] = 255 if color[i] > 255 else color[i]
+
         color = color/255.0
 
         return color
 
 
-    def illumination_values(self):
-        '''função de depuração só pra checar se os valores recebidos estão corretos'''
-        print self.pl, "pl"
-        print self.ka, "ka"
-        print self.ia, "ia"
-        print self.kd, "kd"
-        print self.od, "od"
-        print self.ks, "ks"
-        print self.il, "il"
-        print self.n_factor, "n_factor"
-
-    def equal(self, a, b):
-        if (abs(a - b) < (10 ** -12)):
-            return True
-        return False
-
-    def get_ab(self ,p1, p2, p3):
-        if (self.equal(abs(p2[0] - p1[0]),0)):
-            return (1,0)
-        
-        b = (p3[0] - p1[0])/(p2[0] - p1[0])
-        a = 1 - b
-        return (a, b)
-
     def create_triangle_screen_objects(self):
         for t in self.triangles:
             p1, p2, p3 = self.screen_coordinates[t[0] - 1], self.screen_coordinates[t[1] - 1], self.screen_coordinates[t[2] - 1]
-            self.triangles_screen_objects.append(Triangle(p1, p2, p3))
-
-    def call_triangle_rasterization(self):
-        for t in self.triangles:
-            self.draw_triangle_rasterization(t[0] - 1, t[1] - 1, t[2] - 1)
+            self.triangles_screen_objects.append(Triangle(p1, p2, p3, t[0], t[1], t[2]))
 
 
-    def draw_triangle_rasterization(self, p1, p2, p3):
-        ref_v1 = p1
-        ref_v2 = p2
-        ref_v3 = p3
+    def init_zbuffer(self, height, width):
+        self.z_buffer = np.full((max(height, 5000), max(width, 5000)), sys.maxint, dtype=float)
 
-        p1 = self.screen_coordinates[p1]
-        p2 = self.screen_coordinates[p2]
-        p3 = self.screen_coordinates[p3]
 
-        auxTr = TriangleWithRef(p1, ref_v1, p2, ref_v2, p3, ref_v3)
+    def rasterize_screen_triangles(self, colors_to_randomize, random_factor):
+        '''
+        atentar para identação
+        em python um bloco pode ter vários outros blocos dentro do seu escopo
+        e no bloco-pai vc pode chamar os blocos-filhos
 
-        # Caso dos vertices serem colineares. (acho que nem deveria existir, mas sem ele nao funciona) 
-        if auxTr.v1[1] == auxTr.v2[1] and auxTr.v1[1] == auxTr.v3[1]:
-            auxTr.sort_asc_x()
-            self.draw_line(auxTr.v1_ref, auxTr.v3_ref)
-            self.r+=1
-        else:
-            auxTr.sort_asc_y()
-            self.draw_dynamic(auxTr)
+        :param colors_to_randomize: cores que devem ser randomizadas no Od, conforme passado na entrada
+        :param random_factor: fator de aleatorização a ser aplicado nas cores
+        :return: None
+        '''
 
-        # print self.r, self.t
+        def yscan(triangle):
+            '''
+            yscan conforme visto
+            com dois casos especiais: bottom_flat e top_flat
+            e o caso geral em que o triângulo é dividido em um bottom_flat e outro top_flat
 
-    def draw_dynamic(self, auxTr):
-        if auxTr.v2[1] == auxTr.v3[1]:
-            newTr_bottom_flat = TriangleWithRef(auxTr.v1, auxTr.v1_ref, auxTr.v2, auxTr.v2_ref, auxTr.v3, auxTr.v3_ref)
-            self.fill_bottom_flat_triangle(newTr_bottom_flat)
-            self.t+=1
-        elif auxTr.v1[1] == auxTr.v2[1]:
-            newTr_top_flat = TriangleWithRef(auxTr.v1, auxTr.v1_ref, auxTr.v2, auxTr.v2_ref, auxTr.v3, auxTr.v3_ref)
-            self.fill_top_flat_triangle(newTr_top_flat)
-            self.t+=1
-        else:
-            p4 = np.array([int(auxTr.v1[0] + (float(auxTr.v2[1] - auxTr.v1[1]) / float(auxTr.v3[1] - auxTr.v1[1])) * (auxTr.v3[0] - auxTr.v1[0])), int(auxTr.v2[1])])
-            self.t+=1
+            :param triangle: triangulo a ser rasterizado
+            :return: None
+            '''
+            def fill_bottom_flat_triangle(vertices):
+                '''
+                :param vertices: vertices do triangulo ordenados pelo Y
+                :return: None
+                '''
+                invslope1 = (vertices[1][0] - vertices[0][0]) / (vertices[1][1] - vertices[0][1])
+                invslope2 = (vertices[2][0] - vertices[0][0]) / (vertices[2][1] - vertices[0][1])
 
-            line1 = Linha(auxTr.v1[0], auxTr.v2[0],
-            auxTr.v3[0], p4[0])
+                if invslope1 > invslope2:
+                    invslope1, invslope2 = invslope2, invslope1
 
-            line2 = Linha(auxTr.v1[1], auxTr.v2[1],
-            auxTr.v3[1], p4[1])
+                curx1 = curx2 = v[0][0]
 
-            line3 = Linha(1, 1, 1, 1)
+                scanlineY = v[0][1]
+                while scanlineY <= v[1][1]:
+                    ''' para cada linha do y scan, rasteriza a linha'''
+                    draw_line(triangle, curx1, curx2, scanlineY)
+                    curx1 += invslope1
+                    curx2 += invslope2
+                    scanlineY += 1
 
-            a, b, c = Escalona(line1, line2, line3).esc()
+            def fill_top_flat_triangle(vertices):
+                '''
+                    :param vertices: vertices do triangulo ordenados pelo Y
+                    :return: None
+                '''
+                invslope1 = (vertices[2][0] - vertices[0][0]) / (vertices[2][1] - vertices[0][1])
+                invslope2 = (vertices[2][0] - vertices[1][0]) / float(vertices[2][1] - vertices[1][1])
 
-            p4_ponto_view = self.view_coordinates[auxTr.v1_ref] * a + self.view_coordinates[auxTr.v2_ref] * b + self.view_coordinates[auxTr.v3_ref] * c
-            res1 = self.points_normal[auxTr.v1_ref] * a
-            res2 = self.points_normal[auxTr.v2_ref] * b
-            res3 =  self.points_normal[auxTr.v3_ref] * c
-            p4_normal = res1 + res2 + res3
+                if invslope2 > invslope1:
+                    invslope1, invslope2 = invslope2, invslope1
 
-            self.screen_coordinates.append(p4)
-            self.view_coordinates.append(p4_ponto_view)
-            self.points_normal.append(p4_normal)
+                curx1 = curx2 = v[2][0]
 
-            newTr_bottom_flat = TriangleWithRef(auxTr.v1, auxTr.v1_ref, auxTr.v2, auxTr.v2_ref, p4, len(self.screen_coordinates) - 1)
-            newTr_top_flat = TriangleWithRef(auxTr.v2, auxTr.v2_ref, p4, len(self.screen_coordinates) - 1, auxTr.v3, auxTr.v3_ref)
+                scanlineY = v[2][1]
+                while scanlineY > v[0][1]:
+                    draw_line(triangle, curx1, curx2, scanlineY)
+                    curx1 -= invslope1
+                    curx2 -= invslope2
+                    scanlineY -= 1
 
-            self.fill_bottom_flat_triangle(newTr_bottom_flat)
-            self.fill_top_flat_triangle(newTr_top_flat)
+            ''' primeiro os vetores sao ordenados pelos seus Y'''
+            v = sorted([triangle.v1, triangle.v2, triangle.v3], key=lambda vx: vx[1])
+            '''notação: v1 == v[0], v1.x == v[0][0], v1.y == v[0][1] etc'''
 
-    def draw_line(self, p1, p2):
-        x1 = self.screen_coordinates[p1][0]
-        sline = self.screen_coordinates[p1][1]
-        x2 = self.screen_coordinates[p2][0]
+            if v[0][1] == v[1][1] == v[2][1]:
+                ''' se for um triangulo "sem altura/colinear" ele é rasterizado como uma linha.'''
+                curx1 = min(v[0][0], min(v[1][0], v[2][0]))
+                curx2 = max(v[0][0], max(v[1][0], v[2][0]))
+                draw_line(triangle, curx1, curx2, v[0][1])
+            elif v[1][1] == v[2][1]:
+                ''' caso bottom_flat'''
+                fill_bottom_flat_triangle(v)
+            elif v[0][1] == v[1][1]:
+                '''caso top_flat'''
+                fill_top_flat_triangle(v)
+            else:
+                ''' caso geral '''
+                v4 = np.array([
+                    int(v[0][0] + (float(v[1][1] - v[0][1]) / float(v[2][1] - v[0][1])) * (v[2][0] - v[0][0])),
+                    v[1][1]
+                ])
 
-        while(x1 <= x2):
-            a, b = self.get_ab(self.screen_coordinates[p1], self.screen_coordinates[p2], np.array([x1, sline]))
-            ponto = self.view_coordinates[p1] * a + self.view_coordinates[p2] * b
-            
-            if (self.z_buffer[int(x1 + 0.5)][int(sline + 0.5)] > ponto[2]):
-                self.z_buffer[int(x1 + 0.5)][int(sline + 0.5)] = ponto[2]
-                normal = self.points_normal[p1] * a + self.points_normal[p2] * b
-                color = self.pixel_phong_ilumination(ponto, normal)
+                fill_bottom_flat_triangle([v[0], v[1], v4])
+                fill_top_flat_triangle([v[1], v4, v[2]])
 
-                glColor3f(color[0],color[1],color[2])
-                glVertex2f(x1, sline)
-            x1 += 1
 
-    def fill_bottom_flat_triangle(self, triang_bottom):
-        invslope1 = float(triang_bottom.v2[0] - triang_bottom.v1[0]) / (triang_bottom.v2[1] - triang_bottom.v1[1])
-        invslope2 = float(triang_bottom.v3[0] - triang_bottom.v1[0]) / (triang_bottom.v3[1] - triang_bottom.v1[1])
+        def draw_line(triangle, curx1, curx2, y):
+            '''
+            :param triangle: triangulo a ser rasterizado
+            :param curx1: Xmin, onde começa a rasterização da linha atual
+            :param curx2: Xmax, onde termina a rasterização da linha atual
+            :param y: Yscan, indica qual linha (Y = y) está sendo rasterizada
+            :return: None
+            '''
+            t = triangle
+            x_min = min(curx1, curx2)
+            x_max = max(curx1, curx2)
+            for x in range(int(x_min), int(x_max)):
+                pixel = np.array([x, y])
+                if t.point_in_triangle(pixel):
+                    '''
+                    verifica se o pixel realmente pertence ao triângulo para corrigir casos de erro de precisão
+                    do python
+                    '''
 
-        curx1 = float(triang_bottom.v1[0])
-        curx2 = float(triang_bottom.v1[0]) + 0.5
+                    ''' calcula o pixel em coordenadas baricêntricas do triângulo atual '''
+                    alfa, beta, gama = t.barycentric_coordinates(pixel)
 
-        if invslope1 > invslope2:
-            aux = invslope1
-            invslope1 = invslope2
-            invslope2 = aux
+                    ''' passa os vertices correspondentes em coordenadas de vista (3D) para o sistema baricentrico encontrado'''
+                    _P = alfa * self.view_coordinates[t.ind1 - 1] + beta * self.view_coordinates[t.ind2 - 1] + gama * self.view_coordinates[t.ind3 - 1]
 
-        scanlineY_v1 = triang_bottom.v1[1]
-        line3 = Linha(1, 1, 1, 1)
+                    '''consulta ao Z-buffer'''
+                    if _P[2] < self.z_buffer[pixel[0]][pixel[1]]:
+                        self.z_buffer[pixel[0]][pixel[1]] = _P[2]
 
-        while(scanlineY_v1 <= triang_bottom.v2[1]):
-            x_auxiliar = curx1
-            while(x_auxiliar <= curx2):
-                line1 = Linha(triang_bottom.v1[0], triang_bottom.v2[0], triang_bottom.v3[0], 
-                x_auxiliar)
-                line2 = Linha(triang_bottom.v1[1], triang_bottom.v2[1], triang_bottom.v3[1],
-                    scanlineY_v1)
+                        N = (alfa * self.points_normal[t.ind1 - 1] +
+                             beta * self.points_normal[t.ind2 - 1] +
+                             gama * self.points_normal[t.ind3 - 1])
 
-                a, b, c = Escalona(line1, line2, line3).esc()
+                        color = self.pixel_phong_ilumination(_P, N, colors_to_randomize, random_factor)
+                        glColor3f(color[0], color[1], color[2])
+                        glVertex2f(pixel[0], pixel[1])
 
-                ponto = self.view_coordinates[triang_bottom.v1_ref] * a + self.view_coordinates[triang_bottom.v2_ref] * b + self.view_coordinates[triang_bottom.v3_ref] * c
-                if (self.z_buffer[int(x_auxiliar + 0.5)][int(scanlineY_v1 + 0.5)] > ponto[2]):
-                    self.z_buffer[int(x_auxiliar + 0.5)][int(scanlineY_v1 + 0.5)] = ponto[2]
-                    normal = self.points_normal[triang_bottom.v1_ref] * a + self.points_normal[triang_bottom.v2_ref] * b + self.points_normal[triang_bottom.v3_ref] * c
-                    color = self.pixel_phong_ilumination(ponto, normal)
 
-                    glColor3f(color[0], color[1],color[2])
-                    glVertex2i(int(x_auxiliar + 0.5), int(scanlineY_v1 + 0.5))
-                x_auxiliar += 1
-            scanlineY_v1 += 1
-            curx1 += invslope1
-            curx2 += invslope2
+        '''para cada triângulo'''
+        for t in self.triangles_screen_objects:
+            '''para cada pixel P interno do triângulo'''
+            yscan(t)
 
-    def fill_top_flat_triangle(self, triang_top):
-        invslope1 = float(triang_top.v3[0] - triang_top.v1[0]) / (triang_top.v3[1] - triang_top.v1[1])
-        invslope2 = float(triang_top.v3[0] - triang_top.v2[0]) / (triang_top.v3[1] - triang_top.v2[1])
-
-        curx1 = float(triang_top.v3[0])
-        curx2 = float(triang_top.v3[0]) + 0.5
-        
-        if invslope1 < invslope2:
-            aux = invslope1
-            invslope1 = invslope2
-            invslope2 = aux
-
-        scanlineY_v1 = triang_top.v3[1]
-        line3 = Linha(1, 1, 1, 1)
-
-        while(scanlineY_v1 > triang_top.v1[1]):
-            x_auxiliar = curx1
-            while(x_auxiliar <= curx2):
-                line1 = Linha(triang_top.v1[0], triang_top.v2[0], triang_top.v3[0], 
-                x_auxiliar)
-                line2 = Linha(triang_top.v1[1], triang_top.v2[1], triang_top.v3[1],
-                    scanlineY_v1)
-
-                a, b, c = Escalona(line1, line2, line3).esc()
-
-                ponto = self.view_coordinates[triang_top.v1_ref] * a + self.view_coordinates[triang_top.v2_ref] * b + self.view_coordinates[triang_top.v3_ref] * c
-                if (self.z_buffer[int(x_auxiliar + 0.5)][int(scanlineY_v1 + 0.5)] > ponto[2]):
-                    self.z_buffer[int(x_auxiliar + 0.5)][int(scanlineY_v1 + 0.5)] = ponto[2]
-                    normal = self.points_normal[triang_top.v1_ref] * a + self.points_normal[triang_top.v2_ref] * b + self.points_normal[triang_top.v3_ref] * c
-                    color = self.pixel_phong_ilumination(ponto, normal)
-                    
-                    glColor3f(color[0], color[1], color[2])
-                    glVertex2i(int(x_auxiliar + 0.5), int(scanlineY_v1 + 0.5))
-                x_auxiliar += 1
-            scanlineY_v1 -= 1
-            curx1 -= invslope1
-            curx2 -= invslope2
+            '''reconsulta ao zbuffer para ver se algum pixel deixou de ser pintado por falha de precisão'''
+            for y in range(t.min_y, t.max_y+1):
+                draw_line(t, t.min_x, t.max_x, y)

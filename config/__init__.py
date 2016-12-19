@@ -1,13 +1,8 @@
+
+
 class Settings:
     def __init__(self):
-        # debug boolean
-        self.debug = True
-
-        # camera input
-        self.camera_input = 'input/camera.txt'
-        # self.camera_input = 'input/vader_camera.txt'
-        self.calice_input = 'input/calice.txt'
-        # self.calice_input = 'input/vader_object.txt'
+        self.camera_input = 'input/calice2.cfg'
+        self.object_input = 'input/calice2.byu'
         self.iluminacao_input = 'input/iluminacao.txt'
-
 

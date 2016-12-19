@@ -6,7 +6,7 @@ import numpy as np
 
 def normalize(vector):
     p_interno = np.dot(vector, vector)
-    norma = np.sqrt([p_interno])
+    norma = np.sqrt(p_interno)
     return vector / norma
 
 
