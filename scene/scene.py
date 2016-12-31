@@ -134,6 +134,13 @@ class Scene(object):
             random_g = attenuation if colors_to_randomize['G'] is True else 1
             random_b = attenuation if colors_to_randomize['B'] is True else 1
 
+            # if d < 0.2:
+            #     self.od = np.array([0.9, 0.1, 0.1])
+            # elif 0.2 < d < 0.5:
+            #     self.od = np.array([0.1, 0.9, 0.1])
+            # elif d > 0.5:
+            #     self.od = np.array([0.1, 0.1, 0.9])
+
             od = np.array([self.od[0]*random_r, self.od[1]*random_g, self.od[2]*random_b])
 
             id = (od * self.il) * self.kd * (np.dot(N,l))
@@ -159,7 +166,7 @@ class Scene(object):
 
 
     def init_zbuffer(self, height, width):
-        self.z_buffer = np.full((max(height, 5000), max(width, 5000)), sys.maxint, dtype=float)
+        self.z_buffer = np.full((max(height, width) + 1, max(width, height) + 1), sys.maxint, dtype=float)
 
 
     def rasterize_screen_triangles(self, colors_to_randomize, random_factor):
@@ -231,7 +238,7 @@ class Scene(object):
                 ''' se for um triangulo "sem altura/colinear" ele é rasterizado como uma linha.'''
                 curx1 = min(v[0][0], min(v[1][0], v[2][0]))
                 curx2 = max(v[0][0], max(v[1][0], v[2][0]))
-                draw_line(triangle, curx1, curx2, v[0][1])
+                draw_line(triangle, curx1, curx2, v[0][1], colinear=True)
             elif v[1][1] == v[2][1]:
                 ''' caso bottom_flat'''
                 fill_bottom_flat_triangle(v)
@@ -240,6 +247,9 @@ class Scene(object):
                 fill_top_flat_triangle(v)
             else:
                 ''' caso geral '''
+                '''
+                Vertice v4 = new Vertice((int)(vt1.x + ((float)(vt2.y - vt1.y) / (float)(vt3.y - vt1.y)) * (vt3.x - vt1.x)), vt2.y);
+                '''
                 v4 = np.array([
                     int(v[0][0] + (float(v[1][1] - v[0][1]) / float(v[2][1] - v[0][1])) * (v[2][0] - v[0][0])),
                     v[1][1]
@@ -249,7 +259,7 @@ class Scene(object):
                 fill_top_flat_triangle([v[1], v4, v[2]])
 
 
-        def draw_line(triangle, curx1, curx2, y):
+        def draw_line(triangle, curx1, curx2, y, colinear=False):
             '''
             :param triangle: triangulo a ser rasterizado
             :param curx1: Xmin, onde começa a rasterização da linha atual
@@ -258,11 +268,11 @@ class Scene(object):
             :return: None
             '''
             t = triangle
-            x_min = min(curx1, curx2)
-            x_max = max(curx1, curx2)
-            for x in range(int(x_min), int(x_max)):
+            x_min = min(t.min_x, min(curx1, curx2))
+            x_max = max(t.max_x, max(curx1, curx2))
+            for x in range(int(x_min), int(x_max)+1):
                 pixel = np.array([x, y])
-                if t.point_in_triangle(pixel):
+                if t.point_in_triangle(pixel) or colinear:
                     '''
                     verifica se o pixel realmente pertence ao triângulo para corrigir casos de erro de precisão
                     do python
@@ -275,12 +285,14 @@ class Scene(object):
                     _P = alfa * self.view_coordinates[t.ind1 - 1] + beta * self.view_coordinates[t.ind2 - 1] + gama * self.view_coordinates[t.ind3 - 1]
 
                     '''consulta ao Z-buffer'''
-                    if _P[2] < self.z_buffer[pixel[0]][pixel[1]]:
+                    if _P[2] <= self.z_buffer[pixel[0]][pixel[1]]:
                         self.z_buffer[pixel[0]][pixel[1]] = _P[2]
 
                         N = (alfa * self.points_normal[t.ind1 - 1] +
                              beta * self.points_normal[t.ind2 - 1] +
                              gama * self.points_normal[t.ind3 - 1])
+
+                        # d = np.sqrt(pow(alfa - 1/3.0, 2) + pow(beta - 1/3.0, 2) + pow(gama - 1/3.0, 2))
 
                         color = self.pixel_phong_ilumination(_P, N, colors_to_randomize, random_factor)
                         glColor3f(color[0], color[1], color[2])
@@ -291,7 +303,3 @@ class Scene(object):
         for t in self.triangles_screen_objects:
             '''para cada pixel P interno do triângulo'''
             yscan(t)
-
-            '''reconsulta ao zbuffer para ver se algum pixel deixou de ser pintado por falha de precisão'''
-            for y in range(t.min_y, t.max_y+1):
-                draw_line(t, t.min_x, t.max_x, y)
